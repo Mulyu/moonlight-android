@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The XStreaming-style touch buttons resolve their artwork by name at runtime
+  (Resources#getIdentifier in XSButtonView), so a resource shrinker cannot see
+  those references. Resource shrinking is off today; this keeps the drawables
+  safe if it is ever switched on.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/control_*" />

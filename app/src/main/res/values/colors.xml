@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="profileAccent">#FF4081</color>
+
+    <!-- Tints used by the XStreaming-style touch controls (control_*.xml drawables) -->
+    <color name="control_primary">#22ffffff</color>
+    <color name="control_pressed">#88ffffff</color>
 </resources>

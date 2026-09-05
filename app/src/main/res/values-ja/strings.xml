@@ -184,4 +184,16 @@
 \nカスタム解像度を作成することに起因する問題について、私たちは責任を負いません。
 \n
 \nモニターが必要な表示設定をサポートしていない場合もあります。その場合は、仮想モニターを設定してみてください。最後に、デバイスまたはホストPCが特定の解像度またはリフレッシュレートでのストリーミングをサポートしていない場合、残念ながら運が悪かったということになります。</string>
+
+    <!-- XStreaming 風タッチコントローラー（モック） -->
+    <string name="title_xstreaming_gamepad_mock">XStreaming コントローラー（モック）</string>
+    <string name="summary_xstreaming_gamepad_mock">移植した XStreaming の画面上ゲームパッドをプレビューします。</string>
+    <string name="xstreaming_mock_backdrop">ここにストリーム映像が表示されます</string>
+    <string name="xstreaming_mock_buttons_format">押下中: %1$s</string>
+    <string name="xstreaming_mock_no_buttons">（なし）</string>
+    <string name="xstreaming_mock_stick_mode_fixed">スティック: 固定</string>
+    <string name="xstreaming_mock_stick_mode_free">スティック: フリー</string>
+    <string name="xstreaming_mock_haptics_on">振動: オン</string>
+    <string name="xstreaming_mock_haptics_off">振動: オフ</string>
+    <string name="xstreaming_mock_opacity_format">不透明度 %1$d%%</string>
 </resources>

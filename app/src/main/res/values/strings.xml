@@ -729,4 +729,17 @@
 
     <string name="title_checkbox_full_screen">Enable Full Screen</string>
     <string name="summary_checkbox_full_screen">Hide system bars with immersive mode</string>
+
+    <!-- XStreaming-style touch controller (mock) -->
+    <string name="title_xstreaming_gamepad_mock">XStreaming Controller (Mock)</string>
+    <string name="summary_xstreaming_gamepad_mock">Preview the ported XStreaming on-screen gamepad.</string>
+    <string name="xstreaming_mock_backdrop">Stream video would render here</string>
+    <string name="xstreaming_mock_buttons_format">Pressed: %1$s</string>
+    <string name="xstreaming_mock_no_buttons">(none)</string>
+    <string name="xstreaming_mock_sticks_format">LS %1$.2f, %2$.2f    RS %3$.2f, %4$.2f</string>
+    <string name="xstreaming_mock_stick_mode_fixed">Sticks: Fixed</string>
+    <string name="xstreaming_mock_stick_mode_free">Sticks: Free</string>
+    <string name="xstreaming_mock_haptics_on">Haptics: On</string>
+    <string name="xstreaming_mock_haptics_off">Haptics: Off</string>
+    <string name="xstreaming_mock_opacity_format">Opacity %1$d%%</string>
 </resources>
