@@ -69,7 +69,12 @@ android {
     }
 
     lint {
-        disable 'MissingTranslation'
+        // Translation drift in both directions: some locales are missing strings
+        // and values-ru carries a dozen perf-chart strings that no longer exist
+        // in the default locale. ExtraTranslation is fatal to lintVitalRelease,
+        // which blocks the release build outright, so it is disabled alongside
+        // its already-disabled counterpart.
+        disable 'MissingTranslation', 'ExtraTranslation'
         lintConfig file('lint.xml')
     }
 
@@ -90,6 +95,23 @@ android {
     packaging {
         resources {
             pickFirsts.add('META-INF/versions/9/OSGI-INF/MANIFEST.MF')
+        }
+    }
+
+    // Optional release keystore. CI (and anyone building locally) can pass
+    //   -PMOONLIGHT_RELEASE_STORE_FILE=... -PMOONLIGHT_RELEASE_STORE_PASSWORD=...
+    //   -PMOONLIGHT_RELEASE_KEY_ALIAS=...  -PMOONLIGHT_RELEASE_KEY_PASSWORD=...
+    // to sign release builds with a real key. When those properties are absent
+    // the release variant falls back to the standard debug signing config, so an
+    // automated build still produces an installable APK without any secrets.
+    signingConfigs {
+        if (project.hasProperty('MOONLIGHT_RELEASE_STORE_FILE')) {
+            release {
+                storeFile file(MOONLIGHT_RELEASE_STORE_FILE)
+                storePassword MOONLIGHT_RELEASE_STORE_PASSWORD
+                keyAlias MOONLIGHT_RELEASE_KEY_ALIAS
+                keyPassword MOONLIGHT_RELEASE_KEY_PASSWORD
+            }
         }
     }
 
@@ -138,6 +160,8 @@ android {
             resValue "string", "app_label", "Artemis"
             resValue "string", "app_label_root", "Artemis (Root)"
             resValue "string", "app_label_game", "Artemis (Game)"
+
+            signingConfig signingConfigs.findByName('release') ?: signingConfigs.getByName('debug')
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

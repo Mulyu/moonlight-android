@@ -45,6 +45,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.limelight.DebugInfoActivity;
+import com.limelight.XStreamingGamepadMockActivity;
 import com.limelight.BuildConfig;
 import com.limelight.GameMenu;
 import com.limelight.LimeLog;
@@ -852,6 +853,18 @@ public class StreamSettings extends AppCompatActivity {
                     @Override
                     public boolean onPreferenceClick(@NonNull Preference preference) {
                         Intent intent=new Intent(requireActivity(), DebugInfoActivity.class);
+                        requireActivity().startActivity(intent);
+                        return false;
+                    }
+                });
+            }
+
+            _pref = findPreference("pref_xstreaming_gamepad_mock");
+            if (_pref != null) {
+                _pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(@NonNull Preference preference) {
+                        Intent intent = new Intent(requireActivity(), XStreamingGamepadMockActivity.class);
                         requireActivity().startActivity(intent);
                         return false;
                     }

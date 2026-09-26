@@ -238,6 +238,15 @@
         <activity android:name=".DebugInfoActivity"
             android:launchMode="singleTask"/>
 
+        <!-- Mock preview of the XStreaming-style touch controller. Landscape
+             only, since the ported layout is XStreaming's landscape pad. -->
+        <activity android:name=".XStreamingGamepadMockActivity"
+            android:label="@string/title_xstreaming_gamepad_mock"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.FullScreen"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:launchMode="singleTask"/>
+
         <!-- 无障碍 实体键盘 屏蔽某些快捷键 -->
         <service
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"

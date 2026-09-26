@@ -1009,6 +1009,12 @@
             android:title="@string/title_debug_info"
             app:iconSpaceReserved="false" />
 
+        <Preference
+            android:key="pref_xstreaming_gamepad_mock"
+            android:summary="@string/summary_xstreaming_gamepad_mock"
+            android:title="@string/title_xstreaming_gamepad_mock"
+            app:iconSpaceReserved="false" />
+
         <com.limelight.preferences.WebLauncherPreference
             url="https://github.com/ClassicOldSong/moonlight-android/releases"
             android:key="option_software_release"

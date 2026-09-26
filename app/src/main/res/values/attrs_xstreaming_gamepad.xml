@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Attributes for the XStreaming-style touch controls
+  (com.limelight.binding.input.virtual_controller.xstreaming).
+
+  Ported from XStreaming's android/app/src/main/res/values/attrs.xml. Names are
+  prefixed with "xs" so they cannot collide with any other styleable in the app.
+-->
+<resources>
+    <attr name="xsDrawableIdle" format="reference" />
+    <attr name="xsDrawablePressed" format="reference" />
+
+    <declare-styleable name="XSButtonView">
+        <attr name="xsButtonName" format="string" />
+        <attr name="xsDrawableIdle" />
+        <attr name="xsDrawablePressed" />
+    </declare-styleable>
+
+    <declare-styleable name="XSAnalogStickView">
+        <attr name="xsRadius" format="dimension" />
+        <attr name="xsHandleRadius" format="dimension" />
+        <attr name="xsDrawableBase" format="reference" />
+        <attr name="xsDrawableHandle" format="reference" />
+    </declare-styleable>
+</resources>
