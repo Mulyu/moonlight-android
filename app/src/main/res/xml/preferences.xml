@@ -984,5 +984,12 @@
             android:summary="@string/summary_follow_update"
             android:title="@string/title_follow_update"
             app:iconSpaceReserved="false" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="checkbox_check_for_updates"
+            android:summary="@string/summary_check_for_updates"
+            android:title="@string/title_check_for_updates"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 </PreferenceScreen>

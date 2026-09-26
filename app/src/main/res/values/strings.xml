@@ -466,6 +466,18 @@
     <string name="summary_software_update">Artemis Nior Version by ClassicOldSong - Visit GitHub Releases to get latest version</string>
     <string name="title_follow_update">Follow Update</string>
     <string name="summary_follow_update">Follow updates of Artemis with Obtainium</string>
+    <string name="title_check_for_updates">Check for updates</string>
+    <string name="summary_check_for_updates">Check GitHub for a newer build each time the app starts</string>
+
+    <!-- In-app updater (com.limelight.update) -->
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_message">%1$s\n\n%2$s</string>
+    <string name="update_action_manual">Manual download</string>
+    <string name="update_action_install">Install</string>
+    <string name="update_permission_required">Allow installing from this app, then try again</string>
+    <string name="update_downloading_title">Downloading update</string>
+    <string name="update_downloading">Downloading</string>
+    <string name="update_download_failed">Download failed: %1$s</string>
     <string name="title_special_key_layout">Special Key Layout</string>
     <string name="title_show_virtual_key">Display virtual keys on screen</string>
     <string name="summary_show_virtual_key">Display a layer of virtual special keys on the touchscreen.\nKey opacity is shared with the virtual gamepad above.</string>

@@ -17,6 +17,12 @@ android {
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
+
+        // Stamped by CI with the GitHub Actions run number of the build that
+        // published a given release (see .github/workflows/build-release.yml).
+        // A local/dev build keeps 0, so it always looks older than any published
+        // release -- see com.limelight.update.UpdateChecker.
+        buildConfigField "int", "BUILD_NUMBER", "${project.findProperty('MOONLIGHT_BUILD_NUMBER') ?: 0}"
     }
 
     flavorDimensions.add("root")

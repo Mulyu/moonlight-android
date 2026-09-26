@@ -62,6 +62,7 @@ public class PreferenceConfiguration {
     static final String AUDIO_CONFIG_PREF_STRING = "list_audio_config";
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
+    private static final String CHECK_FOR_UPDATES_PREF_STRING = "checkbox_check_for_updates";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
     private static final String CHECKBOX_HIDE_OSC_WHEN_HAS_GAMEPAD = "checkbox_hide_osc_when_has_gamepad";
     private static final String LEGACY_DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
@@ -156,6 +157,7 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
 
     private static final boolean DEFAULT_ONSCREEN_CONTROLLER = false;
+    private static final boolean DEFAULT_CHECK_FOR_UPDATES = true;
     private static final boolean DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD = true;
     private static final boolean DEFAULT_ENABLE_HDR = false;
     private static final boolean DEFAULT_ENABLE_PIP = false;
@@ -246,6 +248,7 @@ public class PreferenceConfiguration {
     public int renderMode;
     public boolean smallIconMode, multiController, usbDriver, flipFaceButtons;
     public boolean onscreenController;
+    public boolean checkForUpdates;
     public boolean hideOSCWhenHasGamepad;
     public boolean enableBatteryReport;
     public boolean forceQwerty;
@@ -903,6 +906,7 @@ private static int getFramePacingValue(Context context) {
                 break;
         }
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, DEFAULT_ONSCREEN_CONTROLLER);
+        config.checkForUpdates = prefs.getBoolean(CHECK_FOR_UPDATES_PREF_STRING, DEFAULT_CHECK_FOR_UPDATES);
         config.hideOSCWhenHasGamepad = prefs.getBoolean(CHECKBOX_HIDE_OSC_WHEN_HAS_GAMEPAD, DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD);
         config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR) && !isShieldAtvFirmwareWithBrokenHdr();
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
