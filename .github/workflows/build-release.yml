@@ -8,9 +8,10 @@ name: Build & Release APK
 #   manual dispatch            -> build, and publish when asked to
 #
 # No repository secrets are required: without a release keystore the release
-# variant falls back to debug signing (see app/build.gradle), which is enough to
-# install the APK on a device. Supply the MOONLIGHT_RELEASE_* secrets to sign
-# with a real key instead.
+# variant falls back to debug signing (see app/build.gradle), signed with the
+# fixed keystore this workflow installs below so every build shares the same
+# signature and can upgrade in place. Supply the MOONLIGHT_RELEASE_* secrets
+# to sign with a real key instead.
 on:
   push:
     # This fork's default branch is `moonlight-noir`; `main` is listed too so the
@@ -86,6 +87,21 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      # Runners are ephemeral, so without this, every run would fall back to a
+      # brand new random debug key (see app/build.gradle's release signingConfig),
+      # making each published APK's signature different from the last. Android
+      # refuses to install an update whose signature doesn't match what's already
+      # installed ("app conflicts with an existing package"), which broke both
+      # sideloaded upgrades and the in-app updater (com.limelight.update). This
+      # checked-in keystore is not a secret -- it uses the same public,
+      # well-known alias/password ("androiddebugkey"/"android") as any local
+      # Android debug keystore -- its only purpose is a stable signature across
+      # CI runs, not security.
+      - name: Use stable CI debug keystore
+        run: |
+          mkdir -p ~/.android
+          cp .github/keystore/ci-debug.keystore ~/.android/debug.keystore
+
       # The unit test suite is deliberately not run here. Five tests
       # (LayoutInflationTest, SimpleStartupTest, StartupTest and two in
       # ProfilesNavigationTest) already fail on the base branch, so gating the
@@ -153,8 +169,11 @@ jobs:
             - Build: ${{ github.run_number }}
 
             Pick the APK for your device's ABI — **artemis-arm64-v8a.apk** covers
-            virtually all modern phones. These are debug-signed unless a release
-            keystore is configured, so uninstall any differently signed build first.
+            virtually all modern phones. These are debug-signed with a fixed CI
+            key unless a release keystore is configured, so every build from
+            now on upgrades in place over the last. If you have an older build
+            installed from before this signature became stable, you'll need to
+            uninstall it once before this one will install.
           prerelease: true
           make_latest: false
           files: dist/*.apk
