@@ -259,14 +259,14 @@ public final class XSMacroEditorDialog {
         TextView durationLabel = new TextView(context);
         root.addView(durationLabel);
         SeekBar durationSeek = new SeekBar(context);
-        durationSeek.setMax(4970); // slides 30..5000ms
-        durationSeek.setProgress(Math.max(0, working.durationMs - 30));
+        durationSeek.setMax(497); // 30..5000ms in 10ms steps, matching XStreaming's step
+        durationSeek.setProgress(Math.max(0, (working.durationMs - 30) / 10));
         root.addView(durationSeek);
         updateMsLabel(durationLabel, context, R.string.xstreaming_macro_step_duration, working.durationMs);
         durationSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                working.durationMs = progress + 30;
+                working.durationMs = 30 + progress * 10;
                 updateMsLabel(durationLabel, context, R.string.xstreaming_macro_step_duration, working.durationMs);
             }
 
@@ -282,14 +282,14 @@ public final class XSMacroEditorDialog {
         TextView waitLabel = new TextView(context);
         root.addView(waitLabel);
         SeekBar waitSeek = new SeekBar(context);
-        waitSeek.setMax(3000);
-        waitSeek.setProgress(working.waitAfterMs);
+        waitSeek.setMax(300); // 0..3000ms in 10ms steps, matching XStreaming's step
+        waitSeek.setProgress(working.waitAfterMs / 10);
         root.addView(waitSeek);
         updateMsLabel(waitLabel, context, R.string.xstreaming_macro_step_wait, working.waitAfterMs);
         waitSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                working.waitAfterMs = progress;
+                working.waitAfterMs = progress * 10;
                 updateMsLabel(waitLabel, context, R.string.xstreaming_macro_step_wait, working.waitAfterMs);
             }
 

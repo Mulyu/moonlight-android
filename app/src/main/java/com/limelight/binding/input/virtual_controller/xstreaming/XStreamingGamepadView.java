@@ -52,7 +52,7 @@ public class XStreamingGamepadView extends FrameLayout {
     public static final String STICK_RIGHT = "right";
 
     /** Alpha applied to a hidden element while in edit mode, so it's visible but marked as off. */
-    private static final float HIDDEN_EDIT_ALPHA = 0.35f;
+    private static final float HIDDEN_EDIT_ALPHA = 0.3f;
 
     // Stick geometry, in dp, matching XStreaming's CustomVirtualGamepad.tsx.
     private static final float FREE_LEFT_STICK_RADIUS_DP = 140f;

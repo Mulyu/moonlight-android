@@ -876,6 +876,10 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         });
         row.addView(showCheck);
 
+        final TextView sizeLabel = new TextView(context);
+        updateCoverSizeLabel(sizeLabel, cb.size);
+        row.addView(sizeLabel);
+
         SeekBar sizeSeek = new SeekBar(context);
         sizeSeek.setMax(35);
         sizeSeek.setProgress(Math.max(8, Math.round(cb.size * 100)));
@@ -886,6 +890,7 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
                     return;
                 }
                 cb.size = Math.max(0.08f, progress / 100f);
+                updateCoverSizeLabel(sizeLabel, cb.size);
                 store.saveCoverLayout(activeProfile, coverLayout);
                 if (coverController != null) {
                     coverController.setLayout(coverLayout);
@@ -929,19 +934,20 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         root.addView(showSwitch);
 
         if (!isStick) {
-            TextView sizeLabel = new TextView(context);
-            sizeLabel.setText(R.string.xstreaming_config_size);
+            final TextView sizeLabel = new TextView(context);
+            updateSizeLabel(sizeLabel, cfg.scale);
             root.addView(sizeLabel);
             SeekBar sizeSeek = new SeekBar(context);
-            sizeSeek.setMax(350); // 0.5x .. 4.0x, in 0.01x steps starting at 0.5x
-            sizeSeek.setProgress(Math.round((cfg.scale - 0.5f) * 100));
+            sizeSeek.setMax(35); // 0.5x .. 4.0x, in 0.1x steps, matching XStreaming's step
+            sizeSeek.setProgress(Math.round((cfg.scale - 0.5f) * 10));
             sizeSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (!fromUser) {
                         return;
                     }
-                    cfg.scale = 0.5f + progress / 100f;
+                    cfg.scale = 0.5f + progress / 10f;
+                    updateSizeLabel(sizeLabel, cfg.scale);
                     persistLayout();
                     gamepadView.setLayout(layout);
                     gamepadView.setEditMode(true);
@@ -966,7 +972,8 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
             });
             root.addView(turboSwitch);
 
-            if (!isMacro) {
+            // XStreaming also excludes Nexus from toggle-hold, alongside sticks and macros.
+            if (!isMacro && !"Nexus".equals(cfg.name)) {
                 Switch holdSwitch = new Switch(context);
                 holdSwitch.setText(R.string.xstreaming_config_hold);
                 holdSwitch.setChecked(cfg.holdToggle);
@@ -988,20 +995,22 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
             });
             root.addView(loopSwitch);
 
-            TextView intervalLabel = new TextView(context);
-            intervalLabel.setText(R.string.xstreaming_config_loop_interval);
+            final TextView intervalLabel = new TextView(context);
+            updateMsLabel(intervalLabel, R.string.xstreaming_config_loop_interval, cfg.macroLoopIntervalMs);
             root.addView(intervalLabel);
             SeekBar intervalSeek = new SeekBar(context);
-            intervalSeek.setMax(10000);
-            intervalSeek.setProgress(cfg.macroLoopIntervalMs);
+            intervalSeek.setMax(200); // 0..10000ms in 50ms steps, matching XStreaming's step
+            intervalSeek.setProgress(cfg.macroLoopIntervalMs / 50);
             intervalSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (!fromUser) {
                         return;
                     }
-                    cfg.macroLoopIntervalMs = progress;
-                    persistLayout();
+                    // Only the label follows the drag; XStreaming defers writing the new
+                    // interval until release so it doesn't reschedule an actively-looping
+                    // macro's timer on every tick.
+                    updateMsLabel(intervalLabel, R.string.xstreaming_config_loop_interval, progress * 50);
                 }
 
                 @Override
@@ -1010,6 +1019,8 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
+                    cfg.macroLoopIntervalMs = seekBar.getProgress() * 50;
+                    persistLayout();
                 }
             });
             root.addView(intervalSeek);
@@ -1060,5 +1071,19 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
 
     private int dp(int value) {
         return Math.round(context.getResources().getDisplayMetrics().density * value);
+    }
+
+    private void updateSizeLabel(TextView label, float scale) {
+        label.setText(context.getString(R.string.xstreaming_config_size)
+                + String.format(java.util.Locale.US, ": %.1fx", scale));
+    }
+
+    private void updateCoverSizeLabel(TextView label, float size) {
+        label.setText(context.getString(R.string.xstreaming_config_size)
+                + String.format(java.util.Locale.US, ": %.2f", size));
+    }
+
+    private void updateMsLabel(TextView label, int stringRes, int valueMs) {
+        label.setText(context.getString(stringRes) + ": " + valueMs + "ms");
     }
 }
