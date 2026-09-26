@@ -730,6 +730,8 @@
     <string name="title_checkbox_full_screen">Enable Full Screen</string>
     <string name="summary_checkbox_full_screen">Hide system bars with immersive mode</string>
 
+    <string name="title_checkbox_xstreaming_osc">XStreaming-style controller</string>
+    <string name="summary_checkbox_xstreaming_osc">Use the ported XStreaming touch pad as the on-screen controller</string>
     <!-- XStreaming-style touch controller (mock) -->
     <string name="title_xstreaming_gamepad_mock">XStreaming Controller (Mock)</string>
     <string name="summary_xstreaming_gamepad_mock">Preview the ported XStreaming on-screen gamepad.</string>

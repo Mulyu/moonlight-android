@@ -666,6 +666,13 @@
         <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="checkbox_show_onscreen_controls"
+            android:key="checkbox_xstreaming_osc"
+            android:summary="@string/summary_checkbox_xstreaming_osc"
+            android:title="@string/title_checkbox_xstreaming_osc"
+            app:iconSpaceReserved="false" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="checkbox_show_onscreen_controls"
             android:key="checkbox_onscreen_style_official"
             android:summary="@string/summary_checkbox_onscreen_style_official"
             android:title="@string/title_checkbox_onscreen_style_official"

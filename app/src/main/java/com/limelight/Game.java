@@ -22,6 +22,7 @@ import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.touch.TrackpadContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
+import com.limelight.binding.input.virtual_controller.xstreaming.XStreamingVirtualController;
 import com.limelight.binding.input.virtual_controller.keyboard.KeyBoardController;
 import com.limelight.binding.input.virtual_controller.keyboard.KeyBoardLayoutController;
 import com.limelight.binding.video.CrashListener;
@@ -171,6 +172,9 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
+    // Set instead of virtualController when the XStreaming-style pad is chosen;
+    // the two on-screen pads are mutually exclusive.
+    private XStreamingVirtualController xstreamingController;
 
     private KeyBoardController keyBoardController;
 
@@ -1099,6 +1103,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     }
 
     private void initVirtualController(){
+        if (prefConfig.xstreamingOsc) {
+            xstreamingController = new XStreamingVirtualController(
+                    controllerHandler, (FrameLayout)rootView, this);
+            xstreamingController.show();
+            return;
+        }
         virtualController = new VirtualController(controllerHandler, (FrameLayout)rootView, this);
         virtualController.refreshLayout();
         virtualController.show();
@@ -1133,9 +1143,13 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     //显示隐藏虚拟手柄控制器
     public void toggleVirtualController(){
-        if (virtualController==null) {
+        if (virtualController==null && xstreamingController==null) {
             initVirtualController();
             prefConfig.onscreenController=true;
+            return;
+        }
+        if (xstreamingController != null) {
+            prefConfig.onscreenController = xstreamingController.switchShowHide() != 0;
             return;
         }
         prefConfig.onscreenController= virtualController.switchShowHide() != 0;
@@ -1196,6 +1210,10 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
             virtualController.refreshLayout();
         }
 
+        if (xstreamingController != null) {
+            xstreamingController.refreshLayout();
+        }
+
         if(keyBoardController != null){
             keyBoardController.refreshLayout();
         }
@@ -1223,6 +1241,10 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                 if (virtualController != null) {
                     virtualController.hide();
+                }
+
+                if (xstreamingController != null) {
+                    xstreamingController.hide();
                 }
 
                 if (keyBoardController != null && keyBoardController.shown) {
@@ -1259,6 +1281,10 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                 if (virtualController != null) {
                     virtualController.show();
+                }
+
+                if (xstreamingController != null) {
+                    xstreamingController.show();
                 }
 
                 if (keyBoardController != null && keyBoardController.shown) {
@@ -1766,6 +1792,9 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
         if (virtualController != null) {
             virtualController.hide();
+        }
+        if (xstreamingController != null) {
+            xstreamingController.hide();
         }
         if (keyBoardController != null) {
             keyBoardController.hide();

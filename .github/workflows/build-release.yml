@@ -63,8 +63,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # v4 or newer is required: Google stopped serving the legacy "tools"
+      # package, which v3 installs by default, so v3 now fails with
+      # "Failed to find package 'tools'" before the build even starts.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install Android SDK packages
         run: |
