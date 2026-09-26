@@ -185,6 +185,8 @@
 \n
 \nモニターが必要な表示設定をサポートしていない場合もあります。その場合は、仮想モニターを設定してみてください。最後に、デバイスまたはホストPCが特定の解像度またはリフレッシュレートでのストリーミングをサポートしていない場合、残念ながら運が悪かったということになります。</string>
 
+    <string name="title_checkbox_xstreaming_osc">XStreaming 風コントローラー</string>
+    <string name="summary_checkbox_xstreaming_osc">画面上コントローラーとして、移植した XStreaming のタッチパッドを使用します</string>
     <!-- XStreaming 風タッチコントローラー（モック） -->
     <string name="title_xstreaming_gamepad_mock">XStreaming コントローラー（モック）</string>
     <string name="summary_xstreaming_gamepad_mock">移植した XStreaming の画面上ゲームパッドをプレビューします。</string>
