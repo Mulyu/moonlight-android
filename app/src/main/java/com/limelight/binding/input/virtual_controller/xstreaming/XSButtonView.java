@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
@@ -30,15 +31,41 @@ public class XSButtonView extends View {
     private static final String TAG = "XSButtonView";
 
     private final XSHaptics haptics;
+    private final int touchSlop;
 
     private boolean buttonPressed = false;
+    private boolean forcedPressed = false;
     private Drawable drawableIdle;
     private Drawable drawablePressed;
     private String buttonName = "";
     private OnButtonStateChangeListener stateChangeListener;
 
+    // Layout-editing state (see setEditable).
+    private boolean editable = false;
+    private boolean dragging = false;
+    private float dragStartRawX, dragStartRawY;
+    private int dragStartLeftPx, dragStartTopPx;
+    private OnDragListener dragListener;
+
     public interface OnButtonStateChangeListener {
         void onButtonStateChanged(XSButtonView view, boolean pressed);
+    }
+
+    /**
+     * Reports layout edits while {@link #setEditable} is on. Positions are the
+     * view's pixel margins within its parent (the pad overlay), matching how it
+     * is actually laid out; the listener is responsible for converting to/from
+     * the profile's dp coordinate space.
+     */
+    public interface OnDragListener {
+        /** Called continuously while a finger drags the button; not yet snapped or persisted. */
+        void onDragMove(XSButtonView view, int leftPx, int topPx);
+
+        /** Called once the finger lifts after a drag (or a plain tap, with the position unchanged). */
+        void onDragEnd(XSButtonView view, int leftPx, int topPx);
+
+        /** Called instead of onDragEnd's usual meaning when the touch was a tap, not a drag. */
+        void onTap(XSButtonView view);
     }
 
     public XSButtonView(Context context) {
@@ -53,6 +80,7 @@ public class XSButtonView extends View {
         super(context, attrs, defStyleAttr);
 
         haptics = new XSHaptics(context);
+        touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         if (attrs != null) {
             TypedArray a = context.obtainStyledAttributes(
@@ -120,8 +148,44 @@ public class XSButtonView extends View {
         return buttonPressed;
     }
 
+    /**
+     * Draws the pressed artwork regardless of touch state, without firing the
+     * state-change listener or haptics. Used for a toggle-hold button latched
+     * on, or a macro slot currently looping, so the pad shows what is actually
+     * being sent to the stream.
+     */
+    public void setForcedPressed(boolean forced) {
+        if (forcedPressed == forced) {
+            return;
+        }
+        forcedPressed = forced;
+        invalidate();
+    }
+
     public void setOnButtonStateChangeListener(OnButtonStateChangeListener listener) {
         this.stateChangeListener = listener;
+    }
+
+    /**
+     * Switches between normal play (press/release reported to the stream) and
+     * layout editing (drag to reposition, tap to configure). Any in-progress
+     * touch is abandoned across the switch.
+     */
+    public void setEditable(boolean editable) {
+        if (this.editable == editable) {
+            return;
+        }
+        this.editable = editable;
+        dragging = false;
+        setButtonPressed(false);
+    }
+
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setOnDragListener(OnDragListener listener) {
+        this.dragListener = listener;
     }
 
     private void setButtonPressed(boolean value) {
@@ -143,7 +207,8 @@ public class XSButtonView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Drawable drawable = buttonPressed ? drawablePressed : drawableIdle;
+        boolean visuallyPressed = buttonPressed || forcedPressed || (editable && dragging);
+        Drawable drawable = visuallyPressed ? drawablePressed : drawableIdle;
         if (drawable != null) {
             drawable.setBounds(
                     getPaddingLeft(),
@@ -208,6 +273,10 @@ public class XSButtonView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (editable) {
+            return onEditTouchEvent(event);
+        }
+
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN: {
@@ -225,6 +294,52 @@ public class XSButtonView extends View {
             case MotionEvent.ACTION_CANCEL:
                 setButtonPressed(false);
                 break;
+        }
+        return true;
+    }
+
+    private boolean onEditTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN: {
+                View bestView = bestFittingTouchView(event.getX(), event.getY());
+                if (bestView != this) {
+                    return false;
+                }
+                dragging = false;
+                dragStartRawX = event.getRawX();
+                dragStartRawY = event.getRawY();
+                dragStartLeftPx = getLeft();
+                dragStartTopPx = getTop();
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                float dx = event.getRawX() - dragStartRawX;
+                float dy = event.getRawY() - dragStartRawY;
+                if (!dragging && (Math.abs(dx) > touchSlop || Math.abs(dy) > touchSlop)) {
+                    dragging = true;
+                    invalidate();
+                }
+                if (dragging && dragListener != null) {
+                    dragListener.onDragMove(this,
+                            dragStartLeftPx + Math.round(dx),
+                            dragStartTopPx + Math.round(dy));
+                }
+                return true;
+            }
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL: {
+                boolean wasDragging = dragging;
+                dragging = false;
+                invalidate();
+                if (dragListener != null) {
+                    if (wasDragging) {
+                        dragListener.onDragEnd(this, getLeft(), getTop());
+                    } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                        dragListener.onTap(this);
+                    }
+                }
+                return true;
+            }
         }
         return true;
     }

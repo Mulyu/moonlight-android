@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.limelight.binding.input.virtual_controller.xstreaming.XSGamepadLayout;
 import com.limelight.binding.input.virtual_controller.xstreaming.XStreamingGamepadView;
 
 import java.util.LinkedHashSet;
@@ -78,15 +79,31 @@ public class XStreamingGamepadMockActivity extends AppCompatActivity {
                 }
                 updateSticksText();
             }
+
+            @Override
+            public void onElementMoved(String name, int xDp, int yDp) {
+            }
+
+            @Override
+            public void onElementTapped(String name) {
+            }
+        });
+
+        gamepad.post(() -> {
+            int wPx = gamepad.getWidth();
+            int hPx = gamepad.getHeight();
+            if (wPx <= 0 || hPx <= 0) {
+                return;
+            }
+            float density = getResources().getDisplayMetrics().density;
+            gamepad.setLayout(XSGamepadLayout.buildDefaultLayout(
+                    Math.round(wPx / density), Math.round(hPx / density)));
         });
 
         stickModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gamepad.setStickMode(
-                        gamepad.getStickMode() == XStreamingGamepadView.StickMode.FIXED
-                                ? XStreamingGamepadView.StickMode.FREE
-                                : XStreamingGamepadView.StickMode.FIXED);
+                gamepad.setJoystickMode(gamepad.getJoystickMode() == 0 ? 1 : 0);
                 gamepad.setHapticsEnabled(hapticsEnabled);
                 updateStickModeButton();
             }
@@ -157,7 +174,7 @@ public class XStreamingGamepadMockActivity extends AppCompatActivity {
     }
 
     private void updateStickModeButton() {
-        stickModeButton.setText(gamepad.getStickMode() == XStreamingGamepadView.StickMode.FIXED
+        stickModeButton.setText(gamepad.getJoystickMode() == 0
                 ? R.string.xstreaming_mock_stick_mode_fixed
                 : R.string.xstreaming_mock_stick_mode_free);
     }

@@ -63,10 +63,7 @@ public class PreferenceConfiguration {
     private static final String USB_DRIVER_PREF_SRING = "checkbox_usb_driver";
     private static final String VIDEO_FORMAT_PREF_STRING = "video_format";
     private static final String ONSCREEN_CONTROLLER_PREF_STRING = "checkbox_show_onscreen_controls";
-    private static final String XSTREAMING_OSC_PREF_STRING = "checkbox_xstreaming_osc";
     private static final String CHECKBOX_HIDE_OSC_WHEN_HAS_GAMEPAD = "checkbox_hide_osc_when_has_gamepad";
-    private static final String ONLY_L3_R3_PREF_STRING = "checkbox_only_show_L3R3";
-    private static final String SHOW_GUIDE_BUTTON_PREF_STRING = "checkbox_show_guide_button";
     private static final String LEGACY_DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
     private static final String ENABLE_HDR_PREF_STRING = "checkbox_enable_hdr";
     private static final String ENABLE_PIP_PREF_STRING = "checkbox_enable_pip";
@@ -159,10 +156,7 @@ public class PreferenceConfiguration {
     private static final String DEFAULT_VIDEO_FORMAT = "auto";
 
     private static final boolean DEFAULT_ONSCREEN_CONTROLLER = false;
-    private static final boolean DEFAULT_XSTREAMING_OSC = false;
     private static final boolean DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD = true;
-    private static final boolean ONLY_L3_R3_DEFAULT = false;
-    private static final boolean SHOW_GUIDE_BUTTON_DEFAULT = true;
     private static final boolean DEFAULT_ENABLE_HDR = false;
     private static final boolean DEFAULT_ENABLE_PIP = false;
     private static final boolean DEFAULT_ENABLE_PERF_OVERLAY = false;
@@ -252,8 +246,6 @@ public class PreferenceConfiguration {
     public int renderMode;
     public boolean smallIconMode, multiController, usbDriver, flipFaceButtons;
     public boolean onscreenController;
-    // Use the XStreaming-style pad instead of Moonlight's own on-screen controller.
-    public boolean xstreamingOsc;
     public boolean hideOSCWhenHasGamepad;
     public boolean enableBatteryReport;
     public boolean forceQwerty;
@@ -264,8 +256,6 @@ public class PreferenceConfiguration {
     public boolean smartClipboardSyncToast;
     public boolean hideClipboardContent;
     public boolean stickyModifierKey;
-    public boolean onlyL3R3;
-    public boolean showGuideButton;
     public boolean enableHdr;
     public boolean enablePip;
 
@@ -343,12 +333,6 @@ public class PreferenceConfiguration {
     public boolean enableKeyboardVibrate;
 
     public boolean enableKeyboardSquare;
-
-    //官方虚拟按钮风格
-    public boolean enableOnScreenStyleOfficial;
-
-    //自由摇杆背景透明度
-    public int enableNewAnalogStickOpacity;
 
     public int trackpadSensitivityX;
     public int trackpadSensitivityY;
@@ -919,10 +903,7 @@ private static int getFramePacingValue(Context context) {
                 break;
         }
         config.onscreenController = prefs.getBoolean(ONSCREEN_CONTROLLER_PREF_STRING, DEFAULT_ONSCREEN_CONTROLLER);
-        config.xstreamingOsc = prefs.getBoolean(XSTREAMING_OSC_PREF_STRING, DEFAULT_XSTREAMING_OSC);
         config.hideOSCWhenHasGamepad = prefs.getBoolean(CHECKBOX_HIDE_OSC_WHEN_HAS_GAMEPAD, DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD);
-        config.onlyL3R3 = prefs.getBoolean(ONLY_L3_R3_PREF_STRING, ONLY_L3_R3_DEFAULT);
-        config.showGuideButton = prefs.getBoolean(SHOW_GUIDE_BUTTON_PREF_STRING, SHOW_GUIDE_BUTTON_DEFAULT);
         config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR) && !isShieldAtvFirmwareWithBrokenHdr();
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
         config.enablePerfOverlay = prefs.getBoolean(ENABLE_PERF_OVERLAY_STRING, DEFAULT_ENABLE_PERF_OVERLAY);
@@ -956,10 +937,6 @@ private static int getFramePacingValue(Context context) {
         config.enableJoyConFix = prefs.getBoolean("checkbox_joycon_fix",false);
         //全键盘透明度
         config.oscKeyboardOpacity = prefs.getInt("seekbar_keyboard_axi_opacity",DEFAULT_OPACITY);
-
-        config.enableOnScreenStyleOfficial = prefs.getBoolean("checkbox_onscreen_style_official",false);
-
-        config.enableNewAnalogStickOpacity = prefs.getInt("seekbar_osc_free_analog_stick_opacity",20);
 
         config.onscreenKeyboardHeight = prefs.getInt("seekbar_onscreen_keyboard_height",200);
         config.onscreenKeyboardAutoFitDisabled = prefs.getBoolean("onscreen_keyboard_autofit",false);

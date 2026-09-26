@@ -106,10 +106,6 @@
     <string name="dialog_title_osc_opacity">透過率</string>
     <string name="title_osc_opacity">透過率</string>
     <string name="summary_osc_opacity">オンスクリーンコントローラの透過率を調整します</string>
-    <string name="title_only_l3r3">L3 と R3 のみ表示します</string>
-    <string name="summary_only_l3r3">L3 と R3 以外のボタンを表示しない</string>
-    <string name="title_reset_osc">オンスクリーンコントローラをデフォルトに戻します</string>
-    <string name="summary_reset_osc">サイズやレイアウトを戻します</string>
     <string name="dialog_title_reset_osc">デフォルトに戻します</string>
     <string name="dialog_text_reset_osc">本当にデフォルトに戻しますか？</string>
     <string name="toast_reset_osc_success">オンスクリーンコントローラをデフォルトに戻しました</string>
@@ -185,8 +181,6 @@
 \n
 \nモニターが必要な表示設定をサポートしていない場合もあります。その場合は、仮想モニターを設定してみてください。最後に、デバイスまたはホストPCが特定の解像度またはリフレッシュレートでのストリーミングをサポートしていない場合、残念ながら運が悪かったということになります。</string>
 
-    <string name="title_checkbox_xstreaming_osc">XStreaming 風コントローラー</string>
-    <string name="summary_checkbox_xstreaming_osc">画面上コントローラーとして、移植した XStreaming のタッチパッドを使用します</string>
     <!-- XStreaming 風タッチコントローラー（モック） -->
     <string name="title_xstreaming_gamepad_mock">XStreaming コントローラー（モック）</string>
     <string name="summary_xstreaming_gamepad_mock">移植した XStreaming の画面上ゲームパッドをプレビューします。</string>
@@ -198,4 +192,53 @@
     <string name="xstreaming_mock_haptics_on">振動: オン</string>
     <string name="xstreaming_mock_haptics_off">振動: オフ</string>
     <string name="xstreaming_mock_opacity_format">不透明度 %1$d%%</string>
+    <string name="xstreaming_mock_sticks_format">LS %1$.2f, %2$.2f    RS %3$.2f, %4$.2f</string>
+
+    <!-- XStreaming 風コントローラー: 歯車メニュー -->
+    <string name="xstreaming_menu_title">コントローラー</string>
+    <string name="xstreaming_menu_edit_layout">レイアウトを編集</string>
+    <string name="xstreaming_menu_exit_editing">編集を終了</string>
+    <string name="xstreaming_menu_profiles">プロファイル</string>
+    <string name="xstreaming_menu_reset_layout">レイアウトをリセット</string>
+    <string name="xstreaming_menu_cover_controls">カバー画面のコントロール</string>
+    <string name="xstreaming_reset_title">レイアウトをリセット</string>
+    <string name="xstreaming_reset_message">このプロファイルのレイアウトを初期配置に戻しますか？</string>
+
+    <!-- XStreaming 風コントローラー: プロファイル -->
+    <string name="xstreaming_profile_default">デフォルト</string>
+    <string name="xstreaming_profile_new">新規プロファイル</string>
+    <string name="xstreaming_profile_rename">名前を変更</string>
+    <string name="xstreaming_profile_delete">削除</string>
+    <string name="xstreaming_profile_delete_confirm">プロファイル「%1$s」を削除しますか？元に戻せません。</string>
+
+    <!-- XStreaming 風コントローラー: カバー画面のコントロール -->
+    <string name="xstreaming_cover_enable">カバー画面にコントロールを表示</string>
+    <string name="xstreaming_cover_unavailable_hint">この端末はカバー（外側）画面への表示に対応していません。</string>
+
+    <!-- XStreaming 風コントローラー: 各ボタン・スティックの設定 -->
+    <string name="xstreaming_config_show">表示</string>
+    <string name="xstreaming_config_size">サイズ</string>
+    <string name="xstreaming_config_turbo">連射</string>
+    <string name="xstreaming_config_hold">押しっぱなしで切替</string>
+    <string name="xstreaming_config_loop">押している間ループ</string>
+    <string name="xstreaming_config_loop_interval">ループ間隔</string>
+    <string name="xstreaming_config_edit_macro">マクロを編集</string>
+    <string name="xstreaming_config_reset_position">位置をリセット</string>
+    <string name="xstreaming_config_done">完了</string>
+
+    <!-- XStreaming 風コントローラー: マクロステップ編集 -->
+    <string name="xstreaming_macro_editor_title">マクロのステップ</string>
+    <string name="xstreaming_macro_add_buttons_step">ボタン操作を追加</string>
+    <string name="xstreaming_macro_add_stick_step">スティック操作を追加</string>
+    <string name="xstreaming_macro_step_edit">編集</string>
+    <string name="xstreaming_macro_step_stick_label">スティック</string>
+    <string name="xstreaming_macro_step_stick_left">左スティック</string>
+    <string name="xstreaming_macro_step_stick_right">右スティック</string>
+    <string name="xstreaming_macro_step_buttons_label">ボタン</string>
+    <string name="xstreaming_macro_step_x">X</string>
+    <string name="xstreaming_macro_step_y">Y</string>
+    <string name="xstreaming_macro_step_duration">保持時間</string>
+    <string name="xstreaming_macro_step_wait">後の待機時間</string>
+    <string name="xstreaming_macro_step_save">保存</string>
+    <string name="xstreaming_macro_step_cancel">キャンセル</string>
 </resources>

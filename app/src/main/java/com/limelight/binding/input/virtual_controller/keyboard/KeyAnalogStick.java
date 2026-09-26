@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
-import com.limelight.binding.input.virtual_controller.VirtualController;
 
 import java.util.ArrayList;
 import java.util.List;

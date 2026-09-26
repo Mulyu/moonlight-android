@@ -1059,11 +1059,7 @@ public class StreamSettings extends AppCompatActivity {
 
         @Override
         public void onDisplayPreferenceDialog(@NonNull Preference preference) {
-            if (preference instanceof ConfirmDeleteOscPreference) {
-                DialogFragment dialogFragment = ConfirmDeleteOscPreference.DialogFragmentCompat.newInstance(preference.getKey());
-                dialogFragment.setTargetFragment(this, 0);
-                dialogFragment.show(getFragmentManager(), null);
-            } else if (preference instanceof ConfirmDeleteKeyboardPreference) {
+            if (preference instanceof ConfirmDeleteKeyboardPreference) {
                 DialogFragment dialogFragment = ConfirmDeleteKeyboardPreference.DialogFragmentCompat.newInstance(preference.getKey());
                 dialogFragment.setTargetFragment(this, 0);
                 dialogFragment.show(getFragmentManager(), null);

@@ -265,12 +265,6 @@
     <string name="summary_hide_osc_when_has_gamepad">Hide OSC when a physical controller is connected</string>
     <string name="title_checkbox_vibrate_osc">Enable vibration</string>
     <string name="summary_checkbox_vibrate_osc">Vibrates your device to emulate rumble for the on-screen controls</string>
-    <string name="title_only_l3r3">Only show L3 and R3</string>
-    <string name="summary_only_l3r3">Hide all virtual buttons except L3 and R3</string>
-    <string name="title_show_guide_button">Show Guide Button</string>
-    <string name="summary_show_guide_button">Show the guide button on screen</string>
-    <string name="title_reset_osc">Clear saved on-screen controls layout</string>
-    <string name="summary_reset_osc">Resets all on-screen controls to their default size and position</string>
     <string name="dialog_title_reset_osc">Reset Layout</string>
     <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
     <string name="toast_reset_osc_success">On-screen controls reset to default</string>
@@ -446,8 +440,6 @@
     <string name="summary_checkbox_mouse_local_cursor">Default external physical mouse cursor will be captured, this option can display Android system cursor</string>
     <string name="title_checkbox_multi_touch_gestures">Enable multi-touch gestures</string>
     <string name="summary_checkbox_multi_touch_gestures">Enable 3 finger tap for keyboard, 4 finger tap for full keyboard, 5 finger tap for quick menu when using multi-touch mode.</string>
-    <string name="title_checkbox_onscreen_style_official">Official Virtual Gamepad Skin</string>
-    <string name="summary_checkbox_onscreen_style_official">If you still like the old style of official virtual gamepad buttons, you can select this option.\nButton shapes can be square if you selected the bottom virtual button [Normal buttons are square buttons]</string>
     <string name="title_checkbox_enable_perf_overlay_lite">Enable Lite mode</string>
     <string name="summary_checkbox_enable_perf_overlay_lite">Display simplified performance information: Network Speed / Latency / Decode / Packet Loss Rate / FPS</string>
     <string name="title_checkbox_enable_perf_logging">Enable Performance Logging</string>
@@ -497,8 +489,6 @@
     <string name="summary_onscreen_keyboard_align_mode">How the virtual full keyboard aligns to the view port</string>
     <string name="title_free_analog_stick">Free Analog Stick</string>
     <string name="summary_free_analog_stick">Virtual gamepad left and right stick center point positions are not fixed, can be freely adjusted within a certain range of movement.</string>
-    <string name="summary_free_analog_stick_opacity">By default, only when the stick moves, the background is displayed. If you don\'t like it, you can adjust the opacity effect.</string>
-    <string name="title_free_analog_stick_opacity">Free Analog Stick Background Opacity</string>
     <string name="title_exdisplay_mode">External Display Mode (Beta)</string>
     <string name="title_fullexdisplay_mode">Fully External Display Mode (Beta)</string>
     <string name="summary_exdisplay_mode">Stream display on the monitor, virtual buttons and performance information and other controls on the phone screen.</string>
@@ -730,8 +720,6 @@
     <string name="title_checkbox_full_screen">Enable Full Screen</string>
     <string name="summary_checkbox_full_screen">Hide system bars with immersive mode</string>
 
-    <string name="title_checkbox_xstreaming_osc">XStreaming-style controller</string>
-    <string name="summary_checkbox_xstreaming_osc">Use the ported XStreaming touch pad as the on-screen controller</string>
     <!-- XStreaming-style touch controller (mock) -->
     <string name="title_xstreaming_gamepad_mock">XStreaming Controller (Mock)</string>
     <string name="summary_xstreaming_gamepad_mock">Preview the ported XStreaming on-screen gamepad.</string>
@@ -744,4 +732,52 @@
     <string name="xstreaming_mock_haptics_on">Haptics: On</string>
     <string name="xstreaming_mock_haptics_off">Haptics: Off</string>
     <string name="xstreaming_mock_opacity_format">Opacity %1$d%%</string>
+
+    <!-- XStreaming-style touch controller: gear-button menu -->
+    <string name="xstreaming_menu_title">Controller</string>
+    <string name="xstreaming_menu_edit_layout">Edit layout</string>
+    <string name="xstreaming_menu_exit_editing">Exit editing</string>
+    <string name="xstreaming_menu_profiles">Profiles</string>
+    <string name="xstreaming_menu_reset_layout">Reset layout</string>
+    <string name="xstreaming_menu_cover_controls">Cover screen controls</string>
+    <string name="xstreaming_reset_title">Reset layout</string>
+    <string name="xstreaming_reset_message">Reset this profile\'s layout to the default positions?</string>
+
+    <!-- XStreaming-style touch controller: profiles -->
+    <string name="xstreaming_profile_default">Default</string>
+    <string name="xstreaming_profile_new">New profile</string>
+    <string name="xstreaming_profile_rename">Rename</string>
+    <string name="xstreaming_profile_delete">Delete</string>
+    <string name="xstreaming_profile_delete_confirm">Delete profile \"%1$s\"? This can\'t be undone.</string>
+
+    <!-- XStreaming-style touch controller: cover-screen controls -->
+    <string name="xstreaming_cover_enable">Show controls on cover screen</string>
+    <string name="xstreaming_cover_unavailable_hint">This device doesn\'t support presenting on a cover/outer display.</string>
+
+    <!-- XStreaming-style touch controller: per-element configuration -->
+    <string name="xstreaming_config_show">Show</string>
+    <string name="xstreaming_config_size">Size</string>
+    <string name="xstreaming_config_turbo">Turbo</string>
+    <string name="xstreaming_config_hold">Hold to toggle</string>
+    <string name="xstreaming_config_loop">Loop while held</string>
+    <string name="xstreaming_config_loop_interval">Loop interval</string>
+    <string name="xstreaming_config_edit_macro">Edit macro steps</string>
+    <string name="xstreaming_config_reset_position">Reset position</string>
+    <string name="xstreaming_config_done">Done</string>
+
+    <!-- XStreaming-style touch controller: macro step editor -->
+    <string name="xstreaming_macro_editor_title">Macro steps</string>
+    <string name="xstreaming_macro_add_buttons_step">Add button step</string>
+    <string name="xstreaming_macro_add_stick_step">Add stick step</string>
+    <string name="xstreaming_macro_step_edit">Edit</string>
+    <string name="xstreaming_macro_step_stick_label">Stick</string>
+    <string name="xstreaming_macro_step_stick_left">Left stick</string>
+    <string name="xstreaming_macro_step_stick_right">Right stick</string>
+    <string name="xstreaming_macro_step_buttons_label">Buttons</string>
+    <string name="xstreaming_macro_step_x">X</string>
+    <string name="xstreaming_macro_step_y">Y</string>
+    <string name="xstreaming_macro_step_duration">Hold duration</string>
+    <string name="xstreaming_macro_step_wait">Wait after</string>
+    <string name="xstreaming_macro_step_save">Save</string>
+    <string name="xstreaming_macro_step_cancel">Cancel</string>
 </resources>
