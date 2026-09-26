@@ -1104,8 +1104,10 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     private void initVirtualController(){
         if (prefConfig.xstreamingOsc) {
+            String pcUuid = getIntent().getStringExtra(EXTRA_PC_UUID);
+            String gameKey = (pcUuid != null && app != null) ? (pcUuid + ":" + app.getAppId()) : null;
             xstreamingController = new XStreamingVirtualController(
-                    controllerHandler, (FrameLayout)rootView, this);
+                    controllerHandler, (FrameLayout)rootView, this, this, gameKey);
             xstreamingController.show();
             return;
         }

@@ -744,4 +744,52 @@
     <string name="xstreaming_mock_haptics_on">Haptics: On</string>
     <string name="xstreaming_mock_haptics_off">Haptics: Off</string>
     <string name="xstreaming_mock_opacity_format">Opacity %1$d%%</string>
+
+    <!-- XStreaming-style touch controller: gear-button menu -->
+    <string name="xstreaming_menu_title">Controller</string>
+    <string name="xstreaming_menu_edit_layout">Edit layout</string>
+    <string name="xstreaming_menu_exit_editing">Exit editing</string>
+    <string name="xstreaming_menu_profiles">Profiles</string>
+    <string name="xstreaming_menu_reset_layout">Reset layout</string>
+    <string name="xstreaming_menu_cover_controls">Cover screen controls</string>
+    <string name="xstreaming_reset_title">Reset layout</string>
+    <string name="xstreaming_reset_message">Reset this profile\'s layout to the default positions?</string>
+
+    <!-- XStreaming-style touch controller: profiles -->
+    <string name="xstreaming_profile_default">Default</string>
+    <string name="xstreaming_profile_new">New profile</string>
+    <string name="xstreaming_profile_rename">Rename</string>
+    <string name="xstreaming_profile_delete">Delete</string>
+    <string name="xstreaming_profile_delete_confirm">Delete profile \"%1$s\"? This can\'t be undone.</string>
+
+    <!-- XStreaming-style touch controller: cover-screen controls -->
+    <string name="xstreaming_cover_enable">Show controls on cover screen</string>
+    <string name="xstreaming_cover_unavailable_hint">This device doesn\'t support presenting on a cover/outer display.</string>
+
+    <!-- XStreaming-style touch controller: per-element configuration -->
+    <string name="xstreaming_config_show">Show</string>
+    <string name="xstreaming_config_size">Size</string>
+    <string name="xstreaming_config_turbo">Turbo</string>
+    <string name="xstreaming_config_hold">Hold to toggle</string>
+    <string name="xstreaming_config_loop">Loop while held</string>
+    <string name="xstreaming_config_loop_interval">Loop interval</string>
+    <string name="xstreaming_config_edit_macro">Edit macro steps</string>
+    <string name="xstreaming_config_reset_position">Reset position</string>
+    <string name="xstreaming_config_done">Done</string>
+
+    <!-- XStreaming-style touch controller: macro step editor -->
+    <string name="xstreaming_macro_editor_title">Macro steps</string>
+    <string name="xstreaming_macro_add_buttons_step">Add button step</string>
+    <string name="xstreaming_macro_add_stick_step">Add stick step</string>
+    <string name="xstreaming_macro_step_edit">Edit</string>
+    <string name="xstreaming_macro_step_stick_label">Stick</string>
+    <string name="xstreaming_macro_step_stick_left">Left stick</string>
+    <string name="xstreaming_macro_step_stick_right">Right stick</string>
+    <string name="xstreaming_macro_step_buttons_label">Buttons</string>
+    <string name="xstreaming_macro_step_x">X</string>
+    <string name="xstreaming_macro_step_y">Y</string>
+    <string name="xstreaming_macro_step_duration">Hold duration</string>
+    <string name="xstreaming_macro_step_wait">Wait after</string>
+    <string name="xstreaming_macro_step_save">Save</string>
+    <string name="xstreaming_macro_step_cancel">Cancel</string>
 </resources>

@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp"
+    android:height="60dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+  <!-- Pressed (and forced-pressed, for a latched/looping macro): same slot
+       color plus a bright ring so the active state is visible at a glance. -->
+  <path
+      android:pathData="M100,15 A85,85 0,1 1,99.99 15 Z"
+      android:fillColor="@color/macro_slot_1"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="10"/>
+</vector>

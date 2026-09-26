@@ -5,4 +5,10 @@
     <!-- Tints used by the XStreaming-style touch controls (control_*.xml drawables) -->
     <color name="control_primary">#22ffffff</color>
     <color name="control_pressed">#88ffffff</color>
+
+    <!-- Baked-in macro-slot colors, matching XStreaming's MACRO_SLOT_COLORS so a
+         slot's own color is consistent between the pad and its config UI. -->
+    <color name="macro_slot_1">#2E7D32</color>
+    <color name="macro_slot_2">#1565C0</color>
+    <color name="macro_slot_3">#EF6C00</color>
 </resources>

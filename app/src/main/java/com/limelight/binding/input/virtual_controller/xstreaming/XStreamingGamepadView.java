@@ -1,6 +1,9 @@
 package com.limelight.binding.input.virtual_controller.xstreaming;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -8,36 +11,27 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 
-
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * The complete XStreaming on-screen gamepad, laid out as a single overlay.
+ * The complete XStreaming on-screen gamepad, laid out as a single overlay and
+ * driven entirely by a {@link XSButtonConfig} list (a profile), the same model
+ * XStreaming's own editor and in-game renderer share
+ * (features/controller-customization/lib/gamepadLayout.ts's buildDefaultLayout
+ * and components/CustomVirtualGamepad.tsx).
  *
- * This is a straight port of XStreaming's src/components/VirtualGamepad.tsx:
- * same button set, same drawables, same landscape positions (the React Native
- * style sheet works in dp, so its numbers carry over unchanged), and the same
- * two stick modes.
- *
- * It reports input through {@link Listener} and holds no reference to
- * Moonlight's streaming stack, so it can be dropped on any screen. Wiring it to
- * {@code ControllerHandler} is deliberately left out of this mock.
+ * It emits input through a {@link Listener} and holds no reference to
+ * Moonlight's streaming stack, so {@link XStreamingVirtualController} is what
+ * turns its callbacks into an actual gamepad packet, and what turns a macro
+ * slot's press into macro playback rather than a plain button flag.
  */
 public class XStreamingGamepadView extends FrameLayout {
 
-    /** How the two analog sticks are presented. Mirrors XStreaming's `virtual_gamepad_joystick`. */
-    public enum StickMode {
-        /** Sticks sit at a fixed spot on the pad (XStreaming joystick mode 0). */
-        FIXED,
-        /** Each stick owns half the screen and anchors wherever the finger lands (mode 1). */
-        FREE
-    }
-
     public interface Listener {
-        /**
-         * @param buttonName one of the XStreaming button names, e.g. "A", "DPadUp", "LeftTrigger".
-         */
+        /** @param buttonName one of the XStreaming button/macro-slot names, e.g. "A", "Macro1". */
         void onButtonStateChanged(String buttonName, boolean pressed);
 
         /**
@@ -46,96 +40,43 @@ public class XStreamingGamepadView extends FrameLayout {
          * @param y       vertical deflection in [-1, 1], positive is down
          */
         void onStickMoved(String stickId, float x, float y);
+
+        /** Layout editing: a button (or stick placeholder) was dragged to a new spot and released. */
+        void onElementMoved(String name, int xDp, int yDp);
+
+        /** Layout editing: a button (or stick placeholder) was tapped to configure it. */
+        void onElementTapped(String name);
     }
 
     public static final String STICK_LEFT = "left";
     public static final String STICK_RIGHT = "right";
 
-    // Stick geometry, in raw pixels, matching the values VirtualGamepad.tsx passes
-    // to the native view (React Native forwards these props unconverted).
-    private static final float LEFT_STICK_RADIUS_PX = 140f;
-    private static final float LEFT_STICK_HANDLE_RADIUS_PX = 80f;
-    private static final float RIGHT_STICK_RADIUS_PX = 150f;
-    private static final float RIGHT_STICK_HANDLE_RADIUS_PX = 100f;
+    /** Alpha applied to a hidden element while in edit mode, so it's visible but marked as off. */
+    private static final float HIDDEN_EDIT_ALPHA = 0.35f;
 
-    /** One button's identity, artwork and landscape placement (all distances in dp). */
-    private static final class ButtonSpec {
-        final String name;
-        final String drawableName;
-        final int widthDp;
-        final int heightDp;
-        final int gravity;
-        final int leftDp;
-        final int topDp;
-        final int rightDp;
-        final int bottomDp;
+    // Stick geometry, in dp, matching XStreaming's CustomVirtualGamepad.tsx.
+    private static final float FREE_LEFT_STICK_RADIUS_DP = 140f;
+    private static final float FREE_LEFT_STICK_HANDLE_DP = 80f;
+    private static final float FREE_RIGHT_STICK_RADIUS_DP = 150f;
+    private static final float FREE_RIGHT_STICK_HANDLE_DP = 100f;
+    // Fixed mode uses the same (left) radius for both sticks -- ported as-is.
+    private static final float FIXED_STICK_RADIUS_DP = 140f;
+    private static final float FIXED_STICK_HANDLE_DP = 80f;
+    private static final int FIXED_STICK_BOX_DP = 120;
 
-        ButtonSpec(String name, String drawableName, int widthDp, int heightDp,
-                   int gravity, int leftDp, int topDp, int rightDp, int bottomDp) {
-            this.name = name;
-            this.drawableName = drawableName;
-            this.widthDp = widthDp;
-            this.heightDp = heightDp;
-            this.gravity = gravity;
-            this.leftDp = leftDp;
-            this.topDp = topDp;
-            this.rightDp = rightDp;
-            this.bottomDp = bottomDp;
-        }
-    }
-
-    private static final int TL = Gravity.TOP | Gravity.START;
-    private static final int TR = Gravity.TOP | Gravity.END;
-    private static final int BL = Gravity.BOTTOM | Gravity.START;
-    private static final int BR = Gravity.BOTTOM | Gravity.END;
-    private static final int BC = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-
-    // Positions transcribed from the VirtualGamepad.tsx style sheet. The three
-    // centre buttons are laid out there as `width * 0.5 + offset`; here they use
-    // CENTER_HORIZONTAL, so the offset is shifted by half the 50dp button width.
-    private static final ButtonSpec[] BUTTON_SPECS = new ButtonSpec[]{
-            new ButtonSpec("LeftTrigger", "control_button_lt", 60, 60, TL, 30, 40, 0, 0),
-            new ButtonSpec("RightTrigger", "control_button_rt", 60, 60, TR, 0, 30, 30, 0),
-            new ButtonSpec("LeftShoulder", "control_button_lb", 50, 50, TL, 30, 110, 0, 0),
-            new ButtonSpec("RightShoulder", "control_button_rb", 50, 50, TR, 0, 100, 30, 0),
-
-            new ButtonSpec("A", "control_button_a", 60, 60, BR, 0, 0, 70, 25),
-            new ButtonSpec("B", "control_button_b", 60, 60, BR, 0, 0, 25, 70),
-            new ButtonSpec("X", "control_button_x", 60, 60, BR, 0, 0, 110, 70),
-            new ButtonSpec("Y", "control_button_y", 60, 60, BR, 0, 0, 70, 115),
-
-            new ButtonSpec("DPadLeft", "control_button_left", 70, 70, BL, 25, 0, 0, 70),
-            new ButtonSpec("DPadUp", "control_button_up", 70, 70, BL, 75, 0, 0, 115),
-            new ButtonSpec("DPadRight", "control_button_right", 70, 70, BL, 125, 0, 0, 70),
-            new ButtonSpec("DPadDown", "control_button_down", 70, 70, BL, 75, 0, 0, 25),
-
-            new ButtonSpec("View", "control_button_view", 50, 50, BC, 0, 0, 75, 5),
-            new ButtonSpec("Nexus", "control_button_xbox", 50, 50, BC, 5, 0, 0, 5),
-            new ButtonSpec("Menu", "control_button_menu", 50, 50, BC, 85, 0, 0, 5),
-    };
-
-    // L3/R3 move up out of the way when the sticks take over the whole screen,
-    // exactly as the `joystick === 1` overrides in VirtualGamepad.tsx do.
-    private static final ButtonSpec L3_FIXED =
-            new ButtonSpec("LeftThumb", "control_button_left_joystick_down", 50, 50, BL, 225, 0, 0, 80);
-    private static final ButtonSpec L3_FREE =
-            new ButtonSpec("LeftThumb", "control_button_left_joystick_down", 50, 50, BL, 225, 0, 0, 30);
-    private static final ButtonSpec R3_FIXED =
-            new ButtonSpec("RightThumb", "control_button_right_joystick_down", 50, 50, BR, 0, 0, 235, 40);
-    private static final ButtonSpec R3_FREE =
-            new ButtonSpec("RightThumb", "control_button_right_joystick_down", 50, 50, BR, 0, 0, 225, 30);
-
-    private final List<XSButtonView> buttons = new ArrayList<>();
-
-    private XSAnalogStickView leftStick;
-    private XSAnalogStickView rightStick;
-    private XSButtonView l3Button;
-    private XSButtonView r3Button;
-
-    private Listener listener;
-    private StickMode stickMode = StickMode.FIXED;
+    private List<XSButtonConfig> layout = new ArrayList<>();
+    /** 0 = fixed-position sticks, 1 = free (half-screen) sticks. */
+    private int joystickMode = 1;
+    private boolean editMode = false;
     private float controlOpacity = 0.7f;
     private boolean hapticsEnabled = false;
+    private Listener listener;
+
+    private final Map<String, XSButtonView> buttonViews = new LinkedHashMap<>();
+    private XSAnalogStickView leftStick;
+    private XSAnalogStickView rightStick;
+
+    private final Paint gridPaint = new Paint();
 
     public XStreamingGamepadView(Context context) {
         this(context, null);
@@ -147,23 +88,51 @@ public class XStreamingGamepadView extends FrameLayout {
 
     public XStreamingGamepadView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        build();
+        setClickable(false);
+        setFocusable(false);
+        setWillNotDraw(false);
+        gridPaint.setColor(Color.argb(60, 255, 255, 255));
+        gridPaint.setStrokeWidth(1f);
     }
 
     public void setListener(Listener listener) {
         this.listener = listener;
     }
 
-    public StickMode getStickMode() {
-        return stickMode;
+    /** Replaces the whole layout (e.g. on profile switch) and rebuilds every view. */
+    public void setLayout(List<XSButtonConfig> newLayout) {
+        this.layout = newLayout;
+        rebuild();
     }
 
-    public void setStickMode(StickMode mode) {
-        if (mode == null || mode == stickMode) {
+    public List<XSButtonConfig> getLayout() {
+        return layout;
+    }
+
+    public void setJoystickMode(int mode) {
+        int next = mode == 0 ? 0 : 1;
+        if (joystickMode == next) {
             return;
         }
-        stickMode = mode;
-        rebuildSticks();
+        joystickMode = next;
+        rebuild();
+    }
+
+    public int getJoystickMode() {
+        return joystickMode;
+    }
+
+    /** Toggles layout editing: buttons become draggable/tappable and a snap grid is drawn. */
+    public void setEditMode(boolean edit) {
+        if (editMode == edit) {
+            return;
+        }
+        editMode = edit;
+        rebuild();
+    }
+
+    public boolean isEditMode() {
+        return editMode;
     }
 
     /** Opacity of the whole pad, 0..1. Matches XStreaming's `virtual_gamepad_opacity`. */
@@ -178,134 +147,168 @@ public class XStreamingGamepadView extends FrameLayout {
 
     public void setHapticsEnabled(boolean enabled) {
         hapticsEnabled = enabled;
-        for (XSButtonView button : buttons) {
+        for (XSButtonView button : buttonViews.values()) {
             button.setHapticsEnabled(enabled);
         }
     }
 
-    private void build() {
-        // Only the controls themselves should swallow touches; gaps fall through
-        // to whatever is underneath (the video surface, in a real integration).
-        setClickable(false);
-        setFocusable(false);
+    public XSButtonView findButtonView(String name) {
+        return buttonViews.get(name);
+    }
 
-        for (ButtonSpec spec : BUTTON_SPECS) {
-            addButton(spec);
+    private void rebuild() {
+        removeAllViews();
+        buttonViews.clear();
+        leftStick = null;
+        rightStick = null;
+
+        for (XSButtonConfig cfg : layout) {
+            if (!cfg.show && !editMode) {
+                continue;
+            }
+            if (XSGamepadLayout.LEFT_STICK.equals(cfg.name)) {
+                addStick(cfg, true);
+            } else if (XSGamepadLayout.RIGHT_STICK.equals(cfg.name)) {
+                addStick(cfg, false);
+            } else {
+                addButton(cfg);
+            }
         }
-
-        rebuildSticks();
         applyOpacity();
     }
 
-    private XSButtonView addButton(ButtonSpec spec) {
+    private void addButton(final XSButtonConfig cfg) {
+        String drawableName = XSGamepadLayout.drawableNameFor(cfg.name);
+        if (drawableName == null) {
+            return;
+        }
         XSButtonView button = new XSButtonView(getContext());
-        button.setButtonName(spec.drawableName);
+        button.setButtonName(drawableName);
         button.setHapticsEnabled(hapticsEnabled);
-        button.setTag(spec.name);
-        button.setOnButtonStateChangeListener(new XSButtonView.OnButtonStateChangeListener() {
-            @Override
-            public void onButtonStateChanged(XSButtonView view, boolean pressed) {
+        button.setTag(cfg.name);
+        button.setAlpha(cfg.show ? 1f : HIDDEN_EDIT_ALPHA);
+        button.setEditable(editMode);
+
+        if (editMode) {
+            button.setOnDragListener(makeDragListener(cfg.name));
+        } else {
+            button.setOnButtonStateChangeListener((view, pressed) -> {
                 if (listener != null) {
-                    listener.onButtonStateChanged(spec.name, pressed);
+                    listener.onButtonStateChanged(cfg.name, pressed);
                 }
-            }
-        });
+            });
+        }
 
-        addView(button, layoutParamsFor(spec));
-        buttons.add(button);
-        return button;
-    }
-
-    private LayoutParams layoutParamsFor(ButtonSpec spec) {
-        LayoutParams params = new LayoutParams(dp(spec.widthDp), dp(spec.heightDp), spec.gravity);
-        params.setMargins(dp(spec.leftDp), dp(spec.topDp), dp(spec.rightDp), dp(spec.bottomDp));
-        return params;
+        addView(button, layoutParamsFor(cfg));
+        buttonViews.put(cfg.name, button);
     }
 
     /**
-     * Recreates the sticks (and repositions L3/R3) for the current {@link StickMode}.
+     * In edit mode, a fixed-position stick's box is represented by a plain
+     * draggable/tappable placeholder (reusing the stick artwork) so it goes
+     * through the same drag/snap/config plumbing as every other element. A
+     * free-mode stick has no position to edit, so it is skipped while editing.
      */
-    private void rebuildSticks() {
-        if (leftStick != null) {
-            removeView(leftStick);
-            leftStick = null;
-        }
-        if (rightStick != null) {
-            removeView(rightStick);
-            rightStick = null;
-        }
-        if (l3Button != null) {
-            removeView(l3Button);
-            buttons.remove(l3Button);
-            l3Button = null;
-        }
-        if (r3Button != null) {
-            removeView(r3Button);
-            buttons.remove(r3Button);
-            r3Button = null;
-        }
+    private void addStick(final XSButtonConfig cfg, boolean isLeft) {
+        if (editMode) {
+            if (joystickMode != 0) {
+                return;
+            }
+            XSButtonView placeholder = new XSButtonView(getContext());
+            placeholder.setDrawableIdle(androidx.core.content.ContextCompat.getDrawable(
+                    getContext(), com.limelight.R.drawable.control_analog_stick_base));
+            placeholder.setDrawablePressed(androidx.core.content.ContextCompat.getDrawable(
+                    getContext(), com.limelight.R.drawable.control_analog_stick_handle));
+            placeholder.setTag(cfg.name);
+            placeholder.setAlpha(cfg.show ? 1f : HIDDEN_EDIT_ALPHA);
+            placeholder.setEditable(true);
+            placeholder.setOnDragListener(makeDragListener(cfg.name));
 
-        boolean free = stickMode == StickMode.FREE;
-
-        leftStick = createStick(STICK_LEFT, LEFT_STICK_RADIUS_PX, LEFT_STICK_HANDLE_RADIUS_PX);
-        rightStick = createStick(STICK_RIGHT, RIGHT_STICK_RADIUS_PX, RIGHT_STICK_HANDLE_RADIUS_PX);
-
-        if (free) {
-            // Each stick claims its half of the screen. They go in first so the
-            // buttons drawn on top of them still receive their own touches.
-            addView(leftStick, 0, halfScreenParams(Gravity.START));
-            addView(rightStick, 1, halfScreenParams(Gravity.END));
-        } else {
-            addView(leftStick, 0, fixedStickParams(BL, 180, 150));
-            addView(rightStick, 1, fixedStickParams(BR, 200, 100));
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    dp(FIXED_STICK_BOX_DP), dp(FIXED_STICK_BOX_DP), Gravity.TOP | Gravity.START);
+            params.setMargins(dp(cfg.x), dp(cfg.y), 0, 0);
+            addView(placeholder, params);
+            buttonViews.put(cfg.name, placeholder);
+            return;
         }
 
-        l3Button = addButton(free ? L3_FREE : L3_FIXED);
-        r3Button = addButton(free ? R3_FREE : R3_FIXED);
-
-        applyOpacity();
-    }
-
-    private XSAnalogStickView createStick(final String stickId, float radiusPx, float handleRadiusPx) {
         XSAnalogStickView stick = new XSAnalogStickView(getContext());
-        stick.setRadius(radiusPx);
-        stick.setHandleRadius(handleRadiusPx);
-        stick.setTag(stickId);
-        stick.setStateChangedCallback(new XSAnalogStickView.StateChangedCallback() {
-            @Override
-            public void onStateChanged(XSVector state) {
-                if (listener != null) {
-                    listener.onStickMoved(stickId, state.x, state.y);
-                }
+        String stickId = isLeft ? STICK_LEFT : STICK_RIGHT;
+        stick.setTag(cfg.name);
+        stick.setStateChangedCallback(state -> {
+            if (listener != null) {
+                listener.onStickMoved(stickId, state.x, state.y);
             }
         });
-        return stick;
-    }
 
-    private LayoutParams halfScreenParams(int horizontalGravity) {
-        int width = getWidth() > 0 ? getWidth() / 2 : LayoutParams.MATCH_PARENT;
-        LayoutParams params = new LayoutParams(width, LayoutParams.MATCH_PARENT,
-                horizontalGravity | Gravity.TOP);
-        return params;
-    }
-
-    /** Fixed-mode sticks are 120dp windows onto the stick, per the RN style sheet. */
-    private LayoutParams fixedStickParams(int gravity, int horizontalDp, int bottomDp) {
-        LayoutParams params = new LayoutParams(dp(120), dp(120), gravity);
-        if ((gravity & Gravity.END) == Gravity.END) {
-            params.setMargins(0, 0, dp(horizontalDp), dp(bottomDp));
+        FrameLayout.LayoutParams params;
+        if (joystickMode == 1) {
+            stick.setRadius(dp(isLeft ? FREE_LEFT_STICK_RADIUS_DP : FREE_RIGHT_STICK_RADIUS_DP));
+            stick.setHandleRadius(dp(isLeft ? FREE_LEFT_STICK_HANDLE_DP : FREE_RIGHT_STICK_HANDLE_DP));
+            int halfWidth = getWidth() > 0 ? getWidth() / 2 : LayoutParams.MATCH_PARENT;
+            params = new FrameLayout.LayoutParams(halfWidth, LayoutParams.MATCH_PARENT,
+                    (isLeft ? Gravity.START : Gravity.END) | Gravity.TOP);
         } else {
-            params.setMargins(dp(horizontalDp), 0, 0, dp(bottomDp));
+            stick.setRadius(dp(FIXED_STICK_RADIUS_DP));
+            stick.setHandleRadius(dp(FIXED_STICK_HANDLE_DP));
+            params = new FrameLayout.LayoutParams(dp(FIXED_STICK_BOX_DP), dp(FIXED_STICK_BOX_DP),
+                    Gravity.TOP | Gravity.START);
+            params.setMargins(dp(cfg.x), dp(cfg.y), 0, 0);
         }
+
+        addView(stick, isLeft ? 0 : Math.min(1, getChildCount()), params);
+        if (isLeft) {
+            leftStick = stick;
+        } else {
+            rightStick = stick;
+        }
+    }
+
+    private XSButtonView.OnDragListener makeDragListener(final String name) {
+        return new XSButtonView.OnDragListener() {
+            @Override
+            public void onDragMove(XSButtonView view, int leftPx, int topPx) {
+                LayoutParams params = (LayoutParams) view.getLayoutParams();
+                params.setMargins(leftPx, topPx, 0, 0);
+                view.setLayoutParams(params);
+            }
+
+            @Override
+            public void onDragEnd(XSButtonView view, int leftPx, int topPx) {
+                int xDp = XSGamepadLayout.snapToGrid(pxToDp(leftPx));
+                int yDp = XSGamepadLayout.snapToGrid(pxToDp(topPx));
+                LayoutParams params = (LayoutParams) view.getLayoutParams();
+                params.setMargins(dp(xDp), dp(yDp), 0, 0);
+                view.setLayoutParams(params);
+                if (listener != null) {
+                    listener.onElementMoved(name, xDp, yDp);
+                }
+            }
+
+            @Override
+            public void onTap(XSButtonView view) {
+                if (listener != null) {
+                    listener.onElementTapped(name);
+                }
+            }
+        };
+    }
+
+    private LayoutParams layoutParamsFor(XSButtonConfig cfg) {
+        XSGamepadLayout.Size base = XSGamepadLayout.getButtonBaseSize(cfg.name);
+        float scale = cfg.scale <= 0 ? 1f : cfg.scale;
+        LayoutParams params = new LayoutParams(
+                dp(base.width * scale), dp(base.height * scale), Gravity.TOP | Gravity.START);
+        params.setMargins(dp(cfg.x), dp(cfg.y), 0, 0);
         return params;
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-
-        // Half-screen sticks can only be sized once the overlay knows how wide it is.
-        if (stickMode == StickMode.FREE && w > 0) {
+        // Free-mode sticks are half-screen-wide; that width is only known once
+        // the overlay itself has been measured.
+        if (!editMode && joystickMode == 1 && w > 0) {
             resizeHalfScreenStick(leftStick, w / 2);
             resizeHalfScreenStick(rightStick, w / 2);
         }
@@ -323,8 +326,9 @@ public class XStreamingGamepadView extends FrameLayout {
     }
 
     private void applyOpacity() {
-        for (XSButtonView button : buttons) {
-            button.setAlpha(controlOpacity);
+        for (Map.Entry<String, XSButtonView> entry : buttonViews.entrySet()) {
+            boolean hiddenInEdit = editMode && isHidden(entry.getKey());
+            entry.getValue().setAlpha(hiddenInEdit ? HIDDEN_EDIT_ALPHA : controlOpacity);
         }
         if (leftStick != null) {
             leftStick.setAlpha(controlOpacity);
@@ -334,8 +338,42 @@ public class XStreamingGamepadView extends FrameLayout {
         }
     }
 
-    private int dp(int value) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                value, getResources().getDisplayMetrics());
+    private boolean isHidden(String name) {
+        for (XSButtonConfig cfg : layout) {
+            if (cfg.name.equals(name)) {
+                return !cfg.show;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        if (editMode) {
+            drawGrid(canvas);
+        }
+        super.dispatchDraw(canvas);
+    }
+
+    private void drawGrid(Canvas canvas) {
+        int gridPx = dp(XSGamepadLayout.LAYOUT_SNAP_GRID);
+        if (gridPx <= 0) {
+            return;
+        }
+        for (int x = 0; x < getWidth(); x += gridPx) {
+            canvas.drawLine(x, 0, x, getHeight(), gridPaint);
+        }
+        for (int y = 0; y < getHeight(); y += gridPx) {
+            canvas.drawLine(0, y, getWidth(), y, gridPaint);
+        }
+    }
+
+    private int dp(float value) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                value, getResources().getDisplayMetrics()));
+    }
+
+    private float pxToDp(int px) {
+        return px / getResources().getDisplayMetrics().density;
     }
 }
