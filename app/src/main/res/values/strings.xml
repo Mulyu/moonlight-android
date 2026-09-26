@@ -265,12 +265,6 @@
     <string name="summary_hide_osc_when_has_gamepad">Hide OSC when a physical controller is connected</string>
     <string name="title_checkbox_vibrate_osc">Enable vibration</string>
     <string name="summary_checkbox_vibrate_osc">Vibrates your device to emulate rumble for the on-screen controls</string>
-    <string name="title_only_l3r3">Only show L3 and R3</string>
-    <string name="summary_only_l3r3">Hide all virtual buttons except L3 and R3</string>
-    <string name="title_show_guide_button">Show Guide Button</string>
-    <string name="summary_show_guide_button">Show the guide button on screen</string>
-    <string name="title_reset_osc">Clear saved on-screen controls layout</string>
-    <string name="summary_reset_osc">Resets all on-screen controls to their default size and position</string>
     <string name="dialog_title_reset_osc">Reset Layout</string>
     <string name="dialog_text_reset_osc">Are you sure you want to delete your saved on-screen controls layout?</string>
     <string name="toast_reset_osc_success">On-screen controls reset to default</string>
@@ -446,8 +440,6 @@
     <string name="summary_checkbox_mouse_local_cursor">Default external physical mouse cursor will be captured, this option can display Android system cursor</string>
     <string name="title_checkbox_multi_touch_gestures">Enable multi-touch gestures</string>
     <string name="summary_checkbox_multi_touch_gestures">Enable 3 finger tap for keyboard, 4 finger tap for full keyboard, 5 finger tap for quick menu when using multi-touch mode.</string>
-    <string name="title_checkbox_onscreen_style_official">Official Virtual Gamepad Skin</string>
-    <string name="summary_checkbox_onscreen_style_official">If you still like the old style of official virtual gamepad buttons, you can select this option.\nButton shapes can be square if you selected the bottom virtual button [Normal buttons are square buttons]</string>
     <string name="title_checkbox_enable_perf_overlay_lite">Enable Lite mode</string>
     <string name="summary_checkbox_enable_perf_overlay_lite">Display simplified performance information: Network Speed / Latency / Decode / Packet Loss Rate / FPS</string>
     <string name="title_checkbox_enable_perf_logging">Enable Performance Logging</string>
@@ -497,8 +489,6 @@
     <string name="summary_onscreen_keyboard_align_mode">How the virtual full keyboard aligns to the view port</string>
     <string name="title_free_analog_stick">Free Analog Stick</string>
     <string name="summary_free_analog_stick">Virtual gamepad left and right stick center point positions are not fixed, can be freely adjusted within a certain range of movement.</string>
-    <string name="summary_free_analog_stick_opacity">By default, only when the stick moves, the background is displayed. If you don\'t like it, you can adjust the opacity effect.</string>
-    <string name="title_free_analog_stick_opacity">Free Analog Stick Background Opacity</string>
     <string name="title_exdisplay_mode">External Display Mode (Beta)</string>
     <string name="title_fullexdisplay_mode">Fully External Display Mode (Beta)</string>
     <string name="summary_exdisplay_mode">Stream display on the monitor, virtual buttons and performance information and other controls on the phone screen.</string>
@@ -730,8 +720,6 @@
     <string name="title_checkbox_full_screen">Enable Full Screen</string>
     <string name="summary_checkbox_full_screen">Hide system bars with immersive mode</string>
 
-    <string name="title_checkbox_xstreaming_osc">XStreaming-style controller</string>
-    <string name="summary_checkbox_xstreaming_osc">Use the ported XStreaming touch pad as the on-screen controller</string>
     <!-- XStreaming-style touch controller (mock) -->
     <string name="title_xstreaming_gamepad_mock">XStreaming Controller (Mock)</string>
     <string name="summary_xstreaming_gamepad_mock">Preview the ported XStreaming on-screen gamepad.</string>

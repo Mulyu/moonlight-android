@@ -535,6 +535,11 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         return gamepadView.getVisibility() == View.VISIBLE;
     }
 
+    /** True while the layout editor (drag/resize) is active; callers should ignore stray touches outside the pad. */
+    public boolean isEditMode() {
+        return editMode;
+    }
+
     /** @return 1 if the pad is now shown, 0 if hidden (mirrors VirtualController). */
     public int switchShowHide() {
         if (isShown()) {

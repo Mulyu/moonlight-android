@@ -21,7 +21,6 @@ import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.touch.TrackpadContext;
-import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.input.virtual_controller.xstreaming.XStreamingVirtualController;
 import com.limelight.binding.input.virtual_controller.keyboard.KeyBoardController;
 import com.limelight.binding.input.virtual_controller.keyboard.KeyBoardLayoutController;
@@ -171,9 +170,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
-    private VirtualController virtualController;
-    // Set instead of virtualController when the XStreaming-style pad is chosen;
-    // the two on-screen pads are mutually exclusive.
     private XStreamingVirtualController xstreamingController;
 
     private KeyBoardController keyBoardController;
@@ -1103,17 +1099,11 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     }
 
     private void initVirtualController(){
-        if (prefConfig.xstreamingOsc) {
-            String pcUuid = getIntent().getStringExtra(EXTRA_PC_UUID);
-            String gameKey = (pcUuid != null && app != null) ? (pcUuid + ":" + app.getAppId()) : null;
-            xstreamingController = new XStreamingVirtualController(
-                    controllerHandler, (FrameLayout)rootView, this, this, gameKey);
-            xstreamingController.show();
-            return;
-        }
-        virtualController = new VirtualController(controllerHandler, (FrameLayout)rootView, this);
-        virtualController.refreshLayout();
-        virtualController.show();
+        String pcUuid = getIntent().getStringExtra(EXTRA_PC_UUID);
+        String gameKey = (pcUuid != null && app != null) ? (pcUuid + ":" + app.getAppId()) : null;
+        xstreamingController = new XStreamingVirtualController(
+                controllerHandler, (FrameLayout)rootView, this, this, gameKey);
+        xstreamingController.show();
     }
 
     private void initkeyBoardLayoutController(){
@@ -1145,16 +1135,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     //显示隐藏虚拟手柄控制器
     public void toggleVirtualController(){
-        if (virtualController==null && xstreamingController==null) {
+        if (xstreamingController == null) {
             initVirtualController();
             prefConfig.onscreenController=true;
             return;
         }
-        if (xstreamingController != null) {
-            prefConfig.onscreenController = xstreamingController.switchShowHide() != 0;
-            return;
-        }
-        prefConfig.onscreenController= virtualController.switchShowHide() != 0;
+        prefConfig.onscreenController = xstreamingController.switchShowHide() != 0;
     }
 
     private void setPreferredOrientationForActivity() {
@@ -1207,12 +1193,8 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         // Set requested orientation for possible new screen size
         setPreferredOrientationForActivity();
 
-        if (virtualController != null) {
-            // Refresh layout of OSC for possible new screen size
-            virtualController.refreshLayout();
-        }
-
         if (xstreamingController != null) {
+            // Refresh layout of OSC for possible new screen size
             xstreamingController.refreshLayout();
         }
 
@@ -1239,10 +1221,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
                 if (overlayToggleZoomButtonShown) {
                     overlayToggleButton.setVisibility(View.GONE);
-                }
-
-                if (virtualController != null) {
-                    virtualController.hide();
                 }
 
                 if (xstreamingController != null) {
@@ -1280,10 +1258,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                 }
 
                 // Restore overlays to previous state when leaving PiP
-
-                if (virtualController != null) {
-                    virtualController.show();
-                }
 
                 if (xstreamingController != null) {
                     xstreamingController.show();
@@ -1792,9 +1766,6 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
 
-        if (virtualController != null) {
-            virtualController.hide();
-        }
         if (xstreamingController != null) {
             xstreamingController.hide();
         }
@@ -3096,9 +3067,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                 if (eventSource == InputDevice.SOURCE_TOUCHPAD) {
                     return handleTouchInput(event, trackpadContextMap, false);
                 } else {
-                    if (virtualController != null &&
-                            (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
-                                    virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
+                    if (xstreamingController != null && xstreamingController.isEditMode()) {
                         // Ignore presses when the virtual controller is being configured
                         return true;
                     }

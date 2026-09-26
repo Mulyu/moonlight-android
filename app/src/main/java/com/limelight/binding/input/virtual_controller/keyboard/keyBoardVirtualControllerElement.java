@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.limelight.Game;
-import com.limelight.binding.input.virtual_controller.VirtualController;
 
 import org.json.JSONException;
 import org.json.JSONObject;

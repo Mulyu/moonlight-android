@@ -106,10 +106,6 @@
     <string name="dialog_title_osc_opacity">透過率</string>
     <string name="title_osc_opacity">透過率</string>
     <string name="summary_osc_opacity">オンスクリーンコントローラの透過率を調整します</string>
-    <string name="title_only_l3r3">L3 と R3 のみ表示します</string>
-    <string name="summary_only_l3r3">L3 と R3 以外のボタンを表示しない</string>
-    <string name="title_reset_osc">オンスクリーンコントローラをデフォルトに戻します</string>
-    <string name="summary_reset_osc">サイズやレイアウトを戻します</string>
     <string name="dialog_title_reset_osc">デフォルトに戻します</string>
     <string name="dialog_text_reset_osc">本当にデフォルトに戻しますか？</string>
     <string name="toast_reset_osc_success">オンスクリーンコントローラをデフォルトに戻しました</string>
@@ -185,8 +181,6 @@
 \n
 \nモニターが必要な表示設定をサポートしていない場合もあります。その場合は、仮想モニターを設定してみてください。最後に、デバイスまたはホストPCが特定の解像度またはリフレッシュレートでのストリーミングをサポートしていない場合、残念ながら運が悪かったということになります。</string>
 
-    <string name="title_checkbox_xstreaming_osc">XStreaming 風コントローラー</string>
-    <string name="summary_checkbox_xstreaming_osc">画面上コントローラーとして、移植した XStreaming のタッチパッドを使用します</string>
     <!-- XStreaming 風タッチコントローラー（モック） -->
     <string name="title_xstreaming_gamepad_mock">XStreaming コントローラー（モック）</string>
     <string name="summary_xstreaming_gamepad_mock">移植した XStreaming の画面上ゲームパッドをプレビューします。</string>
