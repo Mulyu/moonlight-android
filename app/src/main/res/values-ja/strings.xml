@@ -241,4 +241,17 @@
     <string name="xstreaming_macro_step_wait">後の待機時間</string>
     <string name="xstreaming_macro_step_save">保存</string>
     <string name="xstreaming_macro_step_cancel">キャンセル</string>
+
+    <string name="title_check_for_updates">アップデートを確認</string>
+    <string name="summary_check_for_updates">起動のたびに GitHub で新しいビルドを確認します</string>
+
+    <!-- アプリ内アップデーター (com.limelight.update) -->
+    <string name="update_available_title">アップデートがあります</string>
+    <string name="update_available_message">%1$s\n\n%2$s</string>
+    <string name="update_action_manual">手動でダウンロード</string>
+    <string name="update_action_install">インストール</string>
+    <string name="update_permission_required">このアプリからのインストールを許可してから、もう一度お試しください</string>
+    <string name="update_downloading_title">アップデートをダウンロード中</string>
+    <string name="update_downloading">ダウンロード中</string>
+    <string name="update_download_failed">ダウンロードに失敗しました: %1$s</string>
 </resources>

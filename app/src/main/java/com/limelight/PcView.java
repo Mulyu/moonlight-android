@@ -24,6 +24,7 @@ import com.limelight.preferences.StreamSettings;
 import com.limelight.profiles.ProfilesManager;
 import com.limelight.ui.AdapterFragment;
 import com.limelight.ui.AdapterFragmentCallbacks;
+import com.limelight.update.UpdateManager;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
@@ -281,6 +282,8 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         pcGridAdapter = new PcGridAdapter(this, PreferenceConfiguration.readPreferences(this));
 
         initializeViews();
+
+        UpdateManager.checkOnLaunch(this);
     }
 
     private void startComputerUpdates() {
