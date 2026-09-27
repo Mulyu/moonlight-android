@@ -8,8 +8,8 @@ name: Build & Release APK
 #   manual dispatch            -> build, and publish when asked to
 #
 # No repository secrets are required: without a release keystore the release
-# variant falls back to debug signing (see app/build.gradle), signed with the
-# fixed keystore this workflow installs below so every build shares the same
+# variant falls back to debug signing (see app/build.gradle), which points
+# directly at a checked-in fixed keystore so every build shares the same
 # signature and can upgrade in place. Supply the MOONLIGHT_RELEASE_* secrets
 # to sign with a real key instead.
 on:
@@ -86,21 +86,6 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
-
-      # Runners are ephemeral, so without this, every run would fall back to a
-      # brand new random debug key (see app/build.gradle's release signingConfig),
-      # making each published APK's signature different from the last. Android
-      # refuses to install an update whose signature doesn't match what's already
-      # installed ("app conflicts with an existing package"), which broke both
-      # sideloaded upgrades and the in-app updater (com.limelight.update). This
-      # checked-in keystore is not a secret -- it uses the same public,
-      # well-known alias/password ("androiddebugkey"/"android") as any local
-      # Android debug keystore -- its only purpose is a stable signature across
-      # CI runs, not security.
-      - name: Use stable CI debug keystore
-        run: |
-          mkdir -p ~/.android
-          cp .github/keystore/ci-debug.keystore ~/.android/debug.keystore
 
       # The unit test suite is deliberately not run here. Five tests
       # (LayoutInflationTest, SimpleStartupTest, StartupTest and two in
