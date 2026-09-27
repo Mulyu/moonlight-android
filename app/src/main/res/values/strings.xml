@@ -765,6 +765,17 @@
     <string name="xstreaming_reset_title">Reset layout</string>
     <string name="xstreaming_reset_message">Reset this profile\'s layout to the default positions?</string>
 
+    <!-- XStreaming-style touch controller: persistent edit-mode toolbar -->
+    <string name="xstreaming_toolbar_grid_on">Grid: On</string>
+    <string name="xstreaming_toolbar_grid_off">Grid: Off</string>
+    <string name="xstreaming_toolbar_sticks">Sticks</string>
+    <string name="xstreaming_toolbar_cover">Cover</string>
+    <string name="xstreaming_toolbar_reset">Reset</string>
+    <string name="xstreaming_toolbar_done">Done</string>
+    <string name="xstreaming_stick_settings_title">Joystick mode</string>
+    <string name="xstreaming_stick_mode_free">Free</string>
+    <string name="xstreaming_stick_mode_fixed">Fixed</string>
+
     <!-- XStreaming-style touch controller: profiles -->
     <string name="xstreaming_profile_default">Default</string>
     <string name="xstreaming_profile_new">New profile</string>

@@ -204,6 +204,17 @@
     <string name="xstreaming_reset_title">レイアウトをリセット</string>
     <string name="xstreaming_reset_message">このプロファイルのレイアウトを初期配置に戻しますか？</string>
 
+    <!-- XStreaming 風コントローラー: 編集中の常時表示ツールバー -->
+    <string name="xstreaming_toolbar_grid_on">グリッド: オン</string>
+    <string name="xstreaming_toolbar_grid_off">グリッド: オフ</string>
+    <string name="xstreaming_toolbar_sticks">スティック</string>
+    <string name="xstreaming_toolbar_cover">カバー</string>
+    <string name="xstreaming_toolbar_reset">リセット</string>
+    <string name="xstreaming_toolbar_done">完了</string>
+    <string name="xstreaming_stick_settings_title">ジョイスティックモード</string>
+    <string name="xstreaming_stick_mode_free">フリー</string>
+    <string name="xstreaming_stick_mode_fixed">固定</string>
+
     <!-- XStreaming 風コントローラー: プロファイル -->
     <string name="xstreaming_profile_default">デフォルト</string>
     <string name="xstreaming_profile_new">新規プロファイル</string>

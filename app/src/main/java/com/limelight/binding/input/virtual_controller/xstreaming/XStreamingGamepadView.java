@@ -68,6 +68,7 @@ public class XStreamingGamepadView extends FrameLayout {
     /** 0 = fixed-position sticks, 1 = free (half-screen) sticks. */
     private int joystickMode = 1;
     private boolean editMode = false;
+    private boolean gridVisible = true;
     private float controlOpacity = 0.7f;
     private boolean hapticsEnabled = false;
     private Listener listener;
@@ -133,6 +134,19 @@ public class XStreamingGamepadView extends FrameLayout {
 
     public boolean isEditMode() {
         return editMode;
+    }
+
+    /** Whether the alignment grid draws while in edit mode. Purely visual. */
+    public void setGridVisible(boolean visible) {
+        if (gridVisible == visible) {
+            return;
+        }
+        gridVisible = visible;
+        invalidate();
+    }
+
+    public boolean isGridVisible() {
+        return gridVisible;
     }
 
     /** Opacity of the whole pad, 0..1. Matches XStreaming's `virtual_gamepad_opacity`. */
@@ -350,7 +364,7 @@ public class XStreamingGamepadView extends FrameLayout {
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        if (editMode) {
+        if (editMode && gridVisible) {
             drawGrid(canvas);
         }
         super.dispatchDraw(canvas);

@@ -65,6 +65,13 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
 
     private final XStreamingGamepadView gamepadView;
     private final Button gearButton;
+    /** Persistent toolbar shown only while {@link #editMode} is active; see {@link #buildEditToolbar()}. */
+    private final LinearLayout editToolbar;
+    /** Right-docked panel that replaces the old per-element AlertDialog; see {@link #showElementConfigPanel}. */
+    private final ScrollView elementPanel;
+    private final int panelWidthPx;
+    private Button profileChipButton;
+    private Button gridToggleButton;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final XSProfileStore store;
 
@@ -142,7 +149,7 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
             public void onElementTapped(String name) {
                 XSButtonConfig cfg = findConfig(name);
                 if (cfg != null) {
-                    showElementConfigDialog(cfg);
+                    showElementConfigPanel(cfg);
                 }
             }
         });
@@ -152,6 +159,16 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         gearButton.setFocusable(false);
         gearButton.setBackgroundResource(R.drawable.ic_settings);
         gearButton.setOnClickListener(v -> showMainMenu());
+
+        // Created now (so profileChipButton etc. exist by the time loadLayoutWhenReady()
+        // below resolves a profile and calls refreshToolbarProfileChip()), added to
+        // parentLayout further down alongside gamepadView/gearButton.
+        panelWidthPx = dp(300);
+        editToolbar = buildEditToolbar();
+        editToolbar.setVisibility(View.GONE);
+        elementPanel = new ScrollView(context);
+        elementPanel.setBackgroundColor(0xF2171B24);
+        elementPanel.setVisibility(View.GONE);
 
         applyPreferences();
 
@@ -168,6 +185,16 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         gearParams.leftMargin = 15;
         gearParams.topMargin = 15;
         parentLayout.addView(gearButton, gearParams);
+
+        FrameLayout.LayoutParams toolbarParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        toolbarParams.topMargin = dp(12);
+        parentLayout.addView(editToolbar, toolbarParams);
+
+        FrameLayout.LayoutParams panelParams = new FrameLayout.LayoutParams(
+                panelWidthPx, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.TOP | Gravity.END);
+        parentLayout.addView(elementPanel, panelParams);
 
         if (this.activity != null) {
             coverController = new XSCoverDisplayController(this.activity);
@@ -232,6 +259,7 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         gamepadView.setLayout(layout);
         gamepadView.setJoystickMode(resolveJoystickMode());
         gamepadView.setEditMode(editMode);
+        refreshToolbarProfileChip();
 
         store.setActiveProfile(activeProfile);
         if (gameKey != null && !gameKey.isEmpty()) {
@@ -567,6 +595,8 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         }
         parentLayout.removeView(gamepadView);
         parentLayout.removeView(gearButton);
+        parentLayout.removeView(editToolbar);
+        parentLayout.removeView(elementPanel);
     }
 
     // ---- Cover-screen presentation ----
@@ -599,6 +629,13 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         editMode = edit;
         gamepadView.setEditMode(edit);
         gearButton.setAlpha(edit ? 0.9f : 0.25f);
+        editToolbar.setVisibility(edit ? View.VISIBLE : View.GONE);
+        if (edit) {
+            refreshToolbarProfileChip();
+            updateGridButtonText();
+        } else {
+            hideElementConfigPanel();
+        }
         syncCoverPresentation();
     }
 
@@ -910,17 +947,152 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         return row;
     }
 
+    // ---- Persistent edit-mode toolbar ----
+
+    /**
+     * Built once and shown for as long as {@link #editMode} is active, replacing the need
+     * to reopen the gear-button menu for profiles/reset/cover controls while editing.
+     * Text-label buttons (not icons) to match this class's existing dialog style and avoid
+     * depending on new vector drawables that can't be visually checked in this environment.
+     */
+    private LinearLayout buildEditToolbar() {
+        LinearLayout bar = new LinearLayout(context);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setBackgroundColor(0xEB141820);
+        int padH = dp(10), padV = dp(6);
+        bar.setPadding(padH, padV, padH, padV);
+
+        profileChipButton = new Button(context);
+        styleToolbarButton(profileChipButton);
+        profileChipButton.setOnClickListener(v -> showProfilesDialog());
+        bar.addView(profileChipButton);
+
+        gridToggleButton = new Button(context);
+        styleToolbarButton(gridToggleButton);
+        gridToggleButton.setOnClickListener(v -> toggleGrid());
+        bar.addView(gridToggleButton);
+
+        Button sticksButton = new Button(context);
+        styleToolbarButton(sticksButton);
+        sticksButton.setText(R.string.xstreaming_toolbar_sticks);
+        sticksButton.setOnClickListener(v -> showStickSettingsDialog());
+        bar.addView(sticksButton);
+
+        Button coverButton = new Button(context);
+        styleToolbarButton(coverButton);
+        coverButton.setText(R.string.xstreaming_toolbar_cover);
+        coverButton.setOnClickListener(v -> showCoverControlsDialog());
+        bar.addView(coverButton);
+
+        Button resetButton = new Button(context);
+        styleToolbarButton(resetButton);
+        resetButton.setText(R.string.xstreaming_toolbar_reset);
+        resetButton.setOnClickListener(v -> confirmResetLayout());
+        bar.addView(resetButton);
+
+        Button doneButton = new Button(context);
+        styleToolbarButton(doneButton);
+        doneButton.setText(R.string.xstreaming_toolbar_done);
+        doneButton.setOnClickListener(v -> setEditMode(false));
+        bar.addView(doneButton);
+
+        return bar;
+    }
+
+    private void styleToolbarButton(Button button) {
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setPadding(dp(10), dp(4), dp(10), dp(4));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = dp(4);
+        params.rightMargin = dp(4);
+        button.setLayoutParams(params);
+    }
+
+    private void refreshToolbarProfileChip() {
+        if (profileChipButton == null) {
+            return;
+        }
+        profileChipButton.setText(activeProfile.isEmpty()
+                ? context.getString(R.string.xstreaming_profile_default)
+                : activeProfile);
+    }
+
+    private void toggleGrid() {
+        gamepadView.setGridVisible(!gamepadView.isGridVisible());
+        updateGridButtonText();
+    }
+
+    private void updateGridButtonText() {
+        if (gridToggleButton == null) {
+            return;
+        }
+        gridToggleButton.setText(gamepadView.isGridVisible()
+                ? R.string.xstreaming_toolbar_grid_on
+                : R.string.xstreaming_toolbar_grid_off);
+    }
+
+    /**
+     * Per-profile joystick mode override (free/fixed). {@link XSProfileStore#setJoystickMode}
+     * already existed but had no UI calling it before this toolbar; only the mock-preview
+     * activity toggled the pad's mode directly without persisting a choice per profile.
+     */
+    private void showStickSettingsDialog() {
+        final String[] items = {
+                context.getString(R.string.xstreaming_stick_mode_free),
+                context.getString(R.string.xstreaming_stick_mode_fixed),
+        };
+        int current = resolveJoystickMode();
+        int checkedIndex = current == 0 ? 1 : 0;
+        new AlertDialog.Builder(context)
+                .setTitle(R.string.xstreaming_stick_settings_title)
+                .setSingleChoiceItems(items, checkedIndex, (dialog, which) -> {
+                    int mode = which == 0 ? 1 : 0;
+                    store.setJoystickMode(activeProfile, mode);
+                    gamepadView.setJoystickMode(mode);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
     // ---- Per-element (button / stick) configuration ----
 
-    private void showElementConfigDialog(final XSButtonConfig cfg) {
+    /**
+     * Right-docked sliding panel replacing the old per-element AlertDialog, so adjusting a
+     * button no longer covers the pad it belongs to. Content is identical to the former
+     * dialog; only the container and its show/hide mechanics changed.
+     */
+    private void showElementConfigPanel(final XSButtonConfig cfg) {
         boolean isStick = XSGamepadLayout.LEFT_STICK.equals(cfg.name)
                 || XSGamepadLayout.RIGHT_STICK.equals(cfg.name);
         boolean isMacro = XSGamepadLayout.isMacroButtonName(cfg.name);
 
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(12);
+        int pad = dp(16);
         root.setPadding(pad, pad, pad, pad);
+
+        LinearLayout header = new LinearLayout(context);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = new TextView(context);
+        title.setText(cfg.name);
+        title.setTextColor(0xFFFFFFFF);
+        title.setTextSize(16);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        title.setLayoutParams(titleParams);
+        header.addView(title);
+        Button closeButton = new Button(context);
+        closeButton.setText("✕");
+        closeButton.setOnClickListener(v -> hideElementConfigPanel());
+        header.addView(closeButton);
+        root.addView(header);
 
         Switch showSwitch = new Switch(context);
         showSwitch.setText(R.string.xstreaming_config_show);
@@ -1059,14 +1231,26 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         });
         root.addView(resetPositionButton);
 
-        ScrollView scroll = new ScrollView(context);
-        scroll.addView(root);
+        elementPanel.removeAllViews();
+        elementPanel.addView(root);
+        showElementPanelAnimated();
+    }
 
-        new AlertDialog.Builder(context)
-                .setTitle(cfg.name)
-                .setView(scroll)
-                .setPositiveButton(R.string.xstreaming_config_done, null)
-                .show();
+    private void showElementPanelAnimated() {
+        if (elementPanel.getVisibility() != View.VISIBLE) {
+            elementPanel.setTranslationX(panelWidthPx);
+            elementPanel.setVisibility(View.VISIBLE);
+            elementPanel.animate().translationX(0).setDuration(150).start();
+        }
+    }
+
+    private void hideElementConfigPanel() {
+        if (elementPanel.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        elementPanel.animate().translationX(panelWidthPx).setDuration(150)
+                .withEndAction(() -> elementPanel.setVisibility(View.GONE))
+                .start();
     }
 
     private int dp(int value) {
