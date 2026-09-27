@@ -251,6 +251,7 @@ public class XStreamingGamepadView extends FrameLayout {
         } else {
             stick.setRadius(dp(FIXED_STICK_RADIUS_DP));
             stick.setHandleRadius(dp(FIXED_STICK_HANDLE_DP));
+            stick.setClipToBoundsCircle(true);
             params = new FrameLayout.LayoutParams(dp(FIXED_STICK_BOX_DP), dp(FIXED_STICK_BOX_DP),
                     Gravity.TOP | Gravity.START);
             params.setMargins(dp(cfg.x), dp(cfg.y), 0, 0);

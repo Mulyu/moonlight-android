@@ -3,6 +3,9 @@ package com.limelight.binding.input.virtual_controller.xstreaming;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
@@ -42,6 +45,24 @@ public class XSAnalogStickView extends View {
     private final XSTouchTracker touchTracker = new XSTouchTracker();
     private XSVector center;
     private XSVector handlePosition = new XSVector(0f, 0f);
+
+    /**
+     * Fixed-placement mode only: clips all drawing to a circle inscribed in
+     * this view's own bounds and paints a persistent translucent marker
+     * inside it, matching XStreaming's fixed-stick box (CustomVirtualGamepad.tsx's
+     * leftJs/rightJs: 120x120, borderRadius 60, overflow "hidden", with the
+     * inner AnalogStick's own style painting rgba(255,255,255,.5) beneath it).
+     * Without this, the touch-overlay circle (radius+handleRadius, ~220dp)
+     * draws far outside the small fixed box, and the box shows nothing at
+     * all until it's already being touched.
+     */
+    private boolean clipToBoundsCircle = false;
+    private final Paint boundsMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path clipPath = new Path();
+
+    {
+        boundsMarkerPaint.setColor(Color.argb(128, 255, 255, 255));
+    }
 
     public interface StateChangedCallback {
         /** @param state stick displacement, each axis in [-1, 1]. */
@@ -140,6 +161,12 @@ public class XSAnalogStickView extends View {
         return handleRadius;
     }
 
+    /** See {@link #clipToBoundsCircle}. Only set for fixed-placement sticks. */
+    public void setClipToBoundsCircle(boolean clip) {
+        this.clipToBoundsCircle = clip;
+        invalidate();
+    }
+
     public void setStateChangedCallback(StateChangedCallback callback) {
         this.stateChangedCallback = callback;
     }
@@ -159,33 +186,52 @@ public class XSAnalogStickView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // Nothing is drawn until a finger anchors the stick; that is deliberate,
-        // the free-placement modes should leave the video unobscured while idle.
-        if (center == null) {
-            return;
+        int clipSaveCount = -1;
+        if (clipToBoundsCircle) {
+            float cx = getWidth() / 2f;
+            float cy = getHeight() / 2f;
+            float boundsRadius = Math.min(getWidth(), getHeight()) / 2f;
+
+            // Always-visible marker for where this fixed stick can be touched;
+            // free-placement sticks stay blank until touched (see below).
+            canvas.drawCircle(cx, cy, boundsRadius, boundsMarkerPaint);
+
+            clipPath.rewind();
+            clipPath.addCircle(cx, cy, boundsRadius, Path.Direction.CW);
+            clipSaveCount = canvas.save();
+            canvas.clipPath(clipPath);
         }
 
-        float circleRadius = radius + handleRadius;
+        // Nothing more is drawn until a finger anchors the stick; that is
+        // deliberate, the free-placement modes should leave the video
+        // unobscured while idle.
+        if (center != null) {
+            float circleRadius = radius + handleRadius;
 
-        if (drawableBase != null) {
-            drawableBase.setBounds(
-                    (int) (center.x - circleRadius),
-                    (int) (center.y - circleRadius),
-                    (int) (center.x + circleRadius),
-                    (int) (center.y + circleRadius));
-            drawableBase.draw(canvas);
+            if (drawableBase != null) {
+                drawableBase.setBounds(
+                        (int) (center.x - circleRadius),
+                        (int) (center.y - circleRadius),
+                        (int) (center.x + circleRadius),
+                        (int) (center.y + circleRadius));
+                drawableBase.draw(canvas);
+            }
+
+            float handleX = center.x + handlePosition.x * radius;
+            float handleY = center.y + handlePosition.y * radius;
+
+            if (drawableHandle != null) {
+                drawableHandle.setBounds(
+                        (int) (handleX - handleRadius),
+                        (int) (handleY - handleRadius),
+                        (int) (handleX + handleRadius),
+                        (int) (handleY + handleRadius));
+                drawableHandle.draw(canvas);
+            }
         }
 
-        float handleX = center.x + handlePosition.x * radius;
-        float handleY = center.y + handlePosition.y * radius;
-
-        if (drawableHandle != null) {
-            drawableHandle.setBounds(
-                    (int) (handleX - handleRadius),
-                    (int) (handleY - handleRadius),
-                    (int) (handleX + handleRadius),
-                    (int) (handleY + handleRadius));
-            drawableHandle.draw(canvas);
+        if (clipSaveCount >= 0) {
+            canvas.restoreToCount(clipSaveCount);
         }
     }
 
