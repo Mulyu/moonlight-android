@@ -9,6 +9,7 @@ import static com.limelight.utils.ServerHelper.getActiveDisplay;
 import static com.limelight.utils.ServerHelper.getSecondaryDisplay;
 
 import com.limelight.binding.PlatformBinding;
+import com.limelight.background.StreamKeepAliveService;
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.GameInputDevice;
@@ -53,6 +54,7 @@ import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -108,7 +110,9 @@ import android.widget.Toast;
 import android.widget.ImageButton;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import android.os.Looper;
@@ -191,6 +195,11 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
+    private AndroidAudioRenderer audioRenderer;
+    // True from surfaceDestroyed() choosing to pause instead of disconnect until surfaceChanged()
+    // resumes rendering on a new Surface; see canKeepStreamingInBackground().
+    private volatile boolean backgroundStreamingActive = false;
+    private static final int BACKGROUND_STREAMING_NOTIFICATION_PERMISSION_REQUEST_CODE = 1002;
     private int suppressPipRefCount = 0;
     private String pcName;
     private String appName;
@@ -873,8 +882,8 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                 decoderRenderer.setRenderTarget(streamContainer.getSurface());
 
                 // Starten Sie die NvConnection
-                conn.start(new AndroidAudioRenderer(Game.this, prefConfig.playHostAudio),
-                        decoderRenderer, Game.this);
+                audioRenderer = new AndroidAudioRenderer(Game.this, prefConfig.playHostAudio);
+                conn.start(audioRenderer, decoderRenderer, Game.this);
             }
         });
 
@@ -1707,6 +1716,11 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         instance = null;
         timerHandler.removeCallbacksAndMessages(null);
 
+        // Safety net: make sure the keep-alive service never outlives this Activity, even if
+        // some path above missed disarming it.
+        StreamKeepAliveService.setDisconnectListener(null);
+        StreamKeepAliveService.disarm(this);
+
         if (prefConfig.enableFullExDisplay) handleDisplayRemoved();
 
         if (controllerHandler != null) {
@@ -1775,6 +1789,12 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
         if(keyBoardLayoutController!=null){
             keyBoardLayoutController.hide();
+        }
+
+        if (backgroundStreamingActive) {
+            // Connection, audio, and input stay alive via StreamKeepAliveService (already
+            // promoted from surfaceDestroyed()); nothing to tear down or finish here.
+            return;
         }
 
         if (conn != null) {
@@ -3436,12 +3456,20 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     public void stageComplete(String stage) {
     }
 
+    /** Whether surfaceDestroyed() should pause video and keep everything else connected instead of disconnecting. */
+    private boolean canKeepStreamingInBackground() {
+        return prefConfig.backgroundStreaming && connected && !isFinishing() && !isChangingConfigurations();
+    }
+
     private void stopConnection() {
         if (connecting || connected) {
             connecting = connected = false;
             updatePipAutoEnter();
 
             controllerHandler.stop();
+
+            backgroundStreamingActive = false;
+            StreamKeepAliveService.disarm(this);
 
             // Update GameManager state to indicate we're no longer in game
             UiHelper.notifyStreamEnded(this);
@@ -3672,6 +3700,30 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                 connecting = false;
                 updatePipAutoEnter();
 
+                if (prefConfig.backgroundStreaming) {
+                    // On Android 13+, posting a notification requires this runtime permission;
+                    // without it, the foreground service still runs (the stream survives
+                    // backgrounding) but its notification is silently suppressed. Request it
+                    // now so it's granted by the time we actually promote the service.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(Game.this, Manifest.permission.POST_NOTIFICATIONS)
+                                    != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(Game.this,
+                                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                BACKGROUND_STREAMING_NOTIFICATION_PERMISSION_REQUEST_CODE);
+                    }
+
+                    // Arm (but don't yet show) the keep-alive notification service while we're
+                    // still definitely in the foreground -- Android disallows starting a *new*
+                    // foreground service once backgrounded, but not promoting one already running.
+                    StreamKeepAliveService.arm(Game.this);
+                    StreamKeepAliveService.setDisconnectListener(() -> {
+                        backgroundStreamingActive = false;
+                        stopConnection();
+                        finish();
+                    });
+                }
+
                 // Hide the mouse cursor now after a short delay.
                 // Doing it before dismissing the spinner seems to be undone
                 // when the spinner gets displayed. On Android Q, even now
@@ -3783,6 +3835,21 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
         LimeLog.info("surfaceChanged-->"+width+" x "+height + "----"+displayWidth+" x "+displayHeight);
 
+        if (backgroundStreamingActive && width > 0 && height > 0) {
+            backgroundStreamingActive = false;
+            StreamKeepAliveService.demote(this);
+            if (audioRenderer != null) {
+                audioRenderer.setMuted(false);
+            }
+            if (!decoderRenderer.resumeForBackground(holder.getSurface())) {
+                // Couldn't reinitialize the decoder against the new Surface (e.g. no matching
+                // hardware decoder could be found again) -- fall back to a full disconnect
+                // rather than leaving the user on a permanently frozen frame.
+                stopConnection();
+                finish();
+            }
+        }
+
         panZoomHandler.handleSurfaceChange();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -3835,11 +3902,23 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         }
 
         if (attemptedConnection) {
-            // Let the decoder know immediately that the surface is gone
-            decoderRenderer.prepareForStop();
+            if (canKeepStreamingInBackground()) {
+                // Keep the connection, audio, and input alive; pause video instead of tearing
+                // everything down, and let the user know via a notification.
+                backgroundStreamingActive = true;
+                decoderRenderer.pauseForBackground();
+                if (prefConfig.muteAudioInBackground && audioRenderer != null) {
+                    audioRenderer.setMuted(true);
+                }
+                StreamKeepAliveService.promote(this, appName != null ? appName : getString(R.string.background_streaming_notification_title));
+            }
+            else {
+                // Let the decoder know immediately that the surface is gone
+                decoderRenderer.prepareForStop();
 
-            if (connected) {
-                stopConnection();
+                if (connected) {
+                    stopConnection();
+                }
             }
         }
     }
