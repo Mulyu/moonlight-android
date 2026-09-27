@@ -276,6 +276,16 @@
     <string name="category_ui_settings">UI Settings</string>
     <string name="title_checkbox_enable_pip">Enable Picture-in-Picture observer mode</string>
     <string name="summary_checkbox_enable_pip">Allows the stream to be viewed (but not controlled) while multitasking</string>
+    <string name="title_checkbox_background_streaming">Keep streaming in background</string>
+    <string name="summary_checkbox_background_streaming">Stay connected with a notification when you leave the app instead of disconnecting. Video pauses and resumes when you return; audio and input keep working while backgrounded.</string>
+    <string name="title_checkbox_mute_audio_in_background">Mute audio in background</string>
+    <string name="summary_checkbox_mute_audio_in_background">Silence game audio while streaming in the background</string>
+
+    <!-- Background streaming notification (com.limelight.background) -->
+    <string name="background_streaming_channel_name">Background streaming</string>
+    <string name="background_streaming_notification_title">Streaming in background</string>
+    <string name="background_streaming_notification_text">Audio and input stay connected. Tap to return.</string>
+    <string name="background_streaming_disconnect">Disconnect</string>
     <string name="title_language_list">Language</string>
     <string name="summary_language_list">Language to use for Artemis</string>
     <string name="title_checkbox_small_icon_mode">Use small box art</string>
