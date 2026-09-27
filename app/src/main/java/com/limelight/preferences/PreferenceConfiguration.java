@@ -68,8 +68,6 @@ public class PreferenceConfiguration {
     private static final String LEGACY_DISABLE_FRAME_DROP_PREF_STRING = "checkbox_disable_frame_drop";
     private static final String ENABLE_HDR_PREF_STRING = "checkbox_enable_hdr";
     private static final String ENABLE_PIP_PREF_STRING = "checkbox_enable_pip";
-    private static final String BACKGROUND_STREAMING_PREF_STRING = "checkbox_background_streaming";
-    private static final String MUTE_AUDIO_IN_BACKGROUND_PREF_STRING = "checkbox_mute_audio_in_background";
     private static final String ENABLE_PERF_OVERLAY_STRING = "checkbox_enable_perf_overlay";
     private static final String ENABLE_PERF_LOGGING = "checkbox_enable_perf_logging";
     private static final String BIND_ALL_USB_STRING = "checkbox_usb_bind_all";
@@ -163,8 +161,6 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD = true;
     private static final boolean DEFAULT_ENABLE_HDR = false;
     private static final boolean DEFAULT_ENABLE_PIP = false;
-    private static final boolean DEFAULT_BACKGROUND_STREAMING = false;
-    private static final boolean DEFAULT_MUTE_AUDIO_IN_BACKGROUND = true;
     private static final boolean DEFAULT_ENABLE_PERF_OVERLAY = false;
     private static final boolean DEFAULT_PERF_OVERLAY_BOTTOM = false;
     private static final boolean DEFAULT_ENABLE_PERF_LOGGING = false;
@@ -265,8 +261,6 @@ public class PreferenceConfiguration {
     public boolean stickyModifierKey;
     public boolean enableHdr;
     public boolean enablePip;
-    public boolean backgroundStreaming;
-    public boolean muteAudioInBackground;
 
     public float parallax_depth;
 
@@ -916,8 +910,6 @@ private static int getFramePacingValue(Context context) {
         config.hideOSCWhenHasGamepad = prefs.getBoolean(CHECKBOX_HIDE_OSC_WHEN_HAS_GAMEPAD, DEFAULT_HIDE_OSC_WHEN_HAS_GAMEPAD);
         config.enableHdr = prefs.getBoolean(ENABLE_HDR_PREF_STRING, DEFAULT_ENABLE_HDR) && !isShieldAtvFirmwareWithBrokenHdr();
         config.enablePip = prefs.getBoolean(ENABLE_PIP_PREF_STRING, DEFAULT_ENABLE_PIP);
-        config.backgroundStreaming = prefs.getBoolean(BACKGROUND_STREAMING_PREF_STRING, DEFAULT_BACKGROUND_STREAMING);
-        config.muteAudioInBackground = prefs.getBoolean(MUTE_AUDIO_IN_BACKGROUND_PREF_STRING, DEFAULT_MUTE_AUDIO_IN_BACKGROUND);
         config.enablePerfOverlay = prefs.getBoolean(ENABLE_PERF_OVERLAY_STRING, DEFAULT_ENABLE_PERF_OVERLAY);
         config.enablePerfLogging = prefs.getBoolean(ENABLE_PERF_LOGGING, DEFAULT_ENABLE_PERF_LOGGING);
         config.enablePerfOverlayLite = prefs.getBoolean("checkbox_enable_perf_overlay_lite",DEFAULT_ENABLE_PERF_OVERLAY);
