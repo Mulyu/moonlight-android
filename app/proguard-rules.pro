@@ -20,6 +20,10 @@
 -keep class com.limelight.profiles.ProfilesManager$ProfilesData {*;}
 -keep class com.limelight.profiles.SettingsProfile {*;}
 
+# UpdateChecker - keep classes and fields for Gson (GitHub Releases API response)
+-keep class com.limelight.update.GithubRelease {*;}
+-keep class com.limelight.update.GithubRelease$Asset {*;}
+
 # Moonlight common
 -keep class com.limelight.nvstream.jni.* {*;}
 
