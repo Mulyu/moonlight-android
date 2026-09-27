@@ -10,10 +10,6 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- To install an update APK downloaded from GitHub releases (see com.limelight.update). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- To keep the connection, audio, and input alive with a notification while backgrounded
-         (see com.limelight.background.StreamKeepAliveService). -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
@@ -199,6 +195,7 @@
         <activity
             android:name=".Game"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
+            android:noHistory="true"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
             android:enableOnBackInvokedCallback="false"
@@ -229,11 +226,6 @@
         <service
             android:name=".binding.input.driver.UsbDriverService"
             android:label="Usb Driver Service" />
-        <service
-            android:name=".background.StreamKeepAliveService"
-            android:label="Background Streaming Service"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
 
         <activity
             android:name=".HelpActivity"

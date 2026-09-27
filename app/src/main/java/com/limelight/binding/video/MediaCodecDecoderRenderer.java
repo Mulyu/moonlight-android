@@ -134,13 +134,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private int videoFormat;
     private Surface renderTarget;
     private volatile boolean stopping;
-    // Set while the app is backgrounded with "keep streaming" enabled: the codec is released
-    // (its Surface is gone) but, unlike stopping, this is resumable via resumeForBackground().
-    private volatile boolean backgroundPaused;
-    // Set for exactly the first decode unit after resumeForBackground(): the fresh decoder has
-    // no SPS/PPS or reference frames, but the native depacketizer doesn't know that (the
-    // connection was never stopped), so we must explicitly ask it for a new IDR frame.
-    private volatile boolean needsIdrAfterResume;
     private CrashListener crashListener;
     private boolean reportedCrash;
     private int consecutiveCrashCount;
@@ -1616,87 +1609,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
     }
 
-    /**
-     * Pauses rendering because the app was backgrounded and its Surface was destroyed, without
-     * touching the network connection, audio, or input -- unlike prepareForStop()+stop(), this is
-     * resumable via resumeForBackground() once a new Surface is available. Safe to call because
-     * submitDecodeUnit() already becomes a no-op while stopping is set, so the still-running
-     * connection can keep calling it with nothing to consume.
-     */
-    public void pauseForBackground() {
-        if (stopping || backgroundPaused) {
-            return;
-        }
-
-        prepareForStop();
-
-        // Wait for the threads prepareForStop() just signalled to actually exit before touching
-        // the MediaCodec -- exactly what stop() does before cleanup() releases it.
-        if (choreographerHandlerThread != null) {
-            try {
-                choreographerHandlerThread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        if (rendererThread != null) {
-            try {
-                rendererThread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        if (videoDecoder != null) {
-            try {
-                videoDecoder.release();
-            } catch (Exception e) {
-                LimeLog.warning("Failed to release decoder before background pause: " + e.getMessage());
-            }
-            videoDecoder = null;
-        }
-
-        // stopping stays true for the whole paused window: it's what makes submitDecodeUnit()
-        // a safe, immediate no-op while the connection keeps calling into it. resumeForBackground()
-        // is the only thing that clears it again.
-        backgroundPaused = true;
-    }
-
-    /**
-     * Resumes rendering to a freshly created Surface after returning from the background.
-     * Recreates the decoder from scratch (mirroring the existing CR_RECOVERY_TYPE_RESET codec
-     * recovery path) and arranges for the next decode unit to request a new IDR frame, since the
-     * still-running connection's depacketizer has no idea the old decoder state is gone.
-     *
-     * @return true if the decoder was reinitialized successfully.
-     */
-    public boolean resumeForBackground(Surface newSurface) {
-        if (!backgroundPaused) {
-            return false;
-        }
-
-        // configureAndStartDecoder() (called from initializeDecoder() below) already resets the
-        // CSD/vps/sps/pps state on every (re)configure; only the recovery bookkeeping needs a
-        // manual reset here.
-        setRenderTarget(newSurface);
-        codecRecoveryAttempts = 0;
-        codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
-        stopping = false;
-
-        int err = initializeDecoder(false);
-        if (err != 0) {
-            LimeLog.severe("Failed to reinitialize decoder after background resume: " + err);
-            // Stay paused/stopping rather than leaving the decoder half-initialized.
-            stopping = true;
-            return false;
-        }
-
-        backgroundPaused = false;
-        needsIdrAfterResume = true;
-        start();
-        return true;
-    }
-
     @Override
     public void stop() {
         // May be called already, but we'll call it now to be safe
@@ -1731,12 +1643,7 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     @Override
     public void cleanup() {
-        // May already be null if we were paused for background streaming (and never resumed)
-        // when the connection was stopped for real.
-        if (videoDecoder != null) {
-            videoDecoder.release();
-            videoDecoder = null;
-        }
+        videoDecoder.release();
     }
 
     @Override
@@ -1841,14 +1748,6 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         if (stopping) {
             // Don't bother if we're stopping
             return MoonBridge.DR_OK;
-        }
-
-        if (needsIdrAfterResume) {
-            // The decoder was just recreated after a background pause; the depacketizer's own
-            // IDR tracking doesn't know that, since the connection was never stopped. Requesting
-            // one here is the same recovery signal MediaCodec error handling already relies on.
-            needsIdrAfterResume = false;
-            return MoonBridge.DR_NEED_IDR;
         }
 
         if (lastFrameNumber == 0) {

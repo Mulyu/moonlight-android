@@ -185,17 +185,6 @@ public class AndroidAudioRenderer implements AudioRenderer {
         return 0;
     }
 
-    /** Used to silence game audio while streaming continues in the background. */
-    public void setMuted(boolean muted) {
-        if (track != null) {
-            try {
-                track.setVolume(muted ? 0f : 1f);
-            } catch (Exception e) {
-                LimeLog.warning("Failed to change audio track volume: " + e.getMessage());
-            }
-        }
-    }
-
     @Override
     public void playDecodedAudio(short[] audioData) {
         // Only queue up to 40 ms of pending audio data in addition to what AudioTrack is buffering for us.

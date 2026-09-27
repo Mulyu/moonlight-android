@@ -643,19 +643,6 @@
             android:summary="@string/summary_checkbox_enable_pip"
             android:title="@string/title_checkbox_enable_pip"
             app:iconSpaceReserved="false" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="checkbox_background_streaming"
-            android:summary="@string/summary_checkbox_background_streaming"
-            android:title="@string/title_checkbox_background_streaming"
-            app:iconSpaceReserved="false" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:dependency="checkbox_background_streaming"
-            android:key="checkbox_mute_audio_in_background"
-            android:summary="@string/summary_checkbox_mute_audio_in_background"
-            android:title="@string/title_checkbox_mute_audio_in_background"
-            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

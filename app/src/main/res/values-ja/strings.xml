@@ -254,15 +254,4 @@
     <string name="update_downloading_title">アップデートをダウンロード中</string>
     <string name="update_downloading">ダウンロード中</string>
     <string name="update_download_failed">ダウンロードに失敗しました: %1$s</string>
-
-    <string name="title_checkbox_background_streaming">バックグラウンドでもストリーミングを継続</string>
-    <string name="summary_checkbox_background_streaming">アプリを離れても切断せず、通知を表示したまま接続を維持します。映像は復帰時に再開し、音声と入力はバックグラウンド中も動作し続けます。</string>
-    <string name="title_checkbox_mute_audio_in_background">バックグラウンド中は音声をミュート</string>
-    <string name="summary_checkbox_mute_audio_in_background">バックグラウンドでストリーミング中はゲーム音声を消音します</string>
-
-    <!-- バックグラウンドストリーミング通知 (com.limelight.background) -->
-    <string name="background_streaming_channel_name">バックグラウンドストリーミング</string>
-    <string name="background_streaming_notification_title">バックグラウンドでストリーミング中</string>
-    <string name="background_streaming_notification_text">音声と入力は接続されたままです。タップして戻ります。</string>
-    <string name="background_streaming_disconnect">切断</string>
 </resources>
