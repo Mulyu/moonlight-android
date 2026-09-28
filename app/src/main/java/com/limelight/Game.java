@@ -1786,6 +1786,26 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (backgroundStreamingActive) {
+            // onStop() unconditionally hid these while the session kept running in the
+            // background; show them again now that the activity is visible. Video/audio are
+            // resumed separately once the SurfaceView is recreated (see surfaceChanged()).
+            if (xstreamingController != null) {
+                xstreamingController.show();
+            }
+            if (keyBoardController != null) {
+                keyBoardController.show();
+            }
+            if (keyBoardLayoutController != null) {
+                keyBoardLayoutController.show();
+            }
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
