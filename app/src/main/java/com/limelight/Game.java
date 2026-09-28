@@ -1152,6 +1152,18 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         prefConfig.onscreenController = xstreamingController.switchShowHide() != 0;
     }
 
+    /** Opens the virtual controller's layout editor, e.g. from the in-game quick menu. */
+    public void openControllerLayoutEditor() {
+        if (xstreamingController == null) {
+            initVirtualController();
+            prefConfig.onscreenController = true;
+        } else if (!xstreamingController.isShown()) {
+            xstreamingController.show();
+            prefConfig.onscreenController = true;
+        }
+        xstreamingController.enterEditMode();
+    }
+
     private void setPreferredOrientationForActivity() {
         Display display = getActiveDisplay(Game.this, prefConfig);
 

@@ -8,10 +8,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.limelight.binding.input.GameInputDevice;
@@ -58,7 +62,9 @@ public class GameMenu implements Game.GameMenuCallbacks {
     private final Game game;
     private final Context dialogScreenContext;
 
-    private AlertDialog currentDialog;
+    /** Right-docked panel replacing the old AlertDialog-list menus; see {@link #showMenuPanel}. */
+    private ScrollView menuPanel;
+    private int panelWidthPx = -1;
 
     public GameMenu(Game game, Context dialogScreenContext) {
         this.game = game;
@@ -105,51 +111,101 @@ public class GameMenu implements Game.GameMenuCallbacks {
         }
     }
 
-    private void showMenuDialog(String title, MenuOption[] options) {
-        int themeResId = game.getApplicationInfo().theme;
+    private int dp(int value) {
+        return Math.round(dialogScreenContext.getResources().getDisplayMetrics().density * value);
+    }
 
-        Context themedContext = new ContextThemeWrapper(dialogScreenContext, themeResId);
-        AlertDialog.Builder builder = new AlertDialog.Builder(themedContext);
-        builder.setTitle(title);
-
-        final ArrayAdapter<String> actions = new ArrayAdapter<>(themedContext, android.R.layout.simple_list_item_1);
-
-        builder.setAdapter(actions, (dialog, which) -> {
-            String label = actions.getItem(which);
-            for (MenuOption option : options) {
-                if (label != null && label.equals(option.label)) {
-                    run(option);
-                    break;
-                }
-            }
-        });
-
-        builder.setOnCancelListener(dialog -> hideMenu());
-
-        if (currentDialog != null) {
-            currentDialog.dismiss();
+    /**
+     * The panel is attached to whichever activity {@link #dialogScreenContext} actually is --
+     * normally {@link #game}, but {@link com.limelight.utils.ExternalDisplayControlActivity}
+     * passes itself instead when the menu is shown on a cover/outer display, exactly like the
+     * old AlertDialog's themed context did.
+     */
+    private void ensurePanelAttached() {
+        if (menuPanel != null) {
+            return;
         }
-        currentDialog = builder.show();
+        Activity hostActivity = dialogScreenContext instanceof Activity
+                ? (Activity) dialogScreenContext : game;
+        ViewGroup root = hostActivity.findViewById(android.R.id.content);
 
-        Window window = currentDialog.getWindow();
+        panelWidthPx = dp(300);
+        menuPanel = new ScrollView(dialogScreenContext);
+        menuPanel.setBackgroundColor(0xF2171B24);
+        menuPanel.setVisibility(View.GONE);
 
-        if (window != null) {
-            View decorView = window.getDecorView();
-            decorView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                panelWidthPx, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.TOP | Gravity.END);
+        root.addView(menuPanel, params);
+    }
 
-                    decorView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        for (MenuOption option : options) {
-                            actions.add(option.label);
-                        }
-                        actions.notifyDataSetChanged();
-                    });
-                }
-            });
+    private void showPanel() {
+        if (menuPanel.getVisibility() != View.VISIBLE) {
+            menuPanel.setTranslationX(panelWidthPx);
+            menuPanel.setVisibility(View.VISIBLE);
+            menuPanel.animate().translationX(0).setDuration(150).start();
         }
+    }
+
+    /**
+     * A tap either runs a leaf action (the panel is left open afterward, so several quick
+     * actions -- e.g. toggling HUD then rotating the screen -- don't each require reopening the
+     * menu, unlike the old one-shot AlertDialog) or a Runnable that calls back into
+     * {@link #showMenuPanel} itself (Advanced / Send special keys / Server Commands), which
+     * replaces the panel's content in place for drill-down navigation. The one special case is
+     * "Cancel" (a null runnable), which explicitly closes the panel.
+     */
+    private void onOptionSelected(MenuOption option) {
+        if (option.runnable == null) {
+            hideMenu();
+            return;
+        }
+        run(option);
+    }
+
+    private void showMenuPanel(String title, MenuOption[] options) {
+        ensurePanelAttached();
+
+        LinearLayout content = new LinearLayout(dialogScreenContext);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(16);
+        content.setPadding(pad, pad, pad, pad);
+
+        LinearLayout header = new LinearLayout(dialogScreenContext);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        TextView titleView = new TextView(dialogScreenContext);
+        titleView.setText(title);
+        titleView.setTextColor(0xFFFFFFFF);
+        titleView.setTextSize(16);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        titleView.setLayoutParams(titleParams);
+        header.addView(titleView);
+        Button closeButton = new Button(dialogScreenContext);
+        closeButton.setText("✕");
+        closeButton.setOnClickListener(v -> hideMenu());
+        header.addView(closeButton);
+        content.addView(header);
+
+        for (final MenuOption option : options) {
+            Button row = new Button(dialogScreenContext);
+            row.setText(option.label);
+            row.setAllCaps(false);
+            row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            row.setBackgroundColor(0x14FFFFFF);
+            row.setTextColor(0xFFFFFFFF);
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            rowParams.topMargin = dp(6);
+            row.setLayoutParams(rowParams);
+            row.setOnClickListener(v -> onOptionSelected(option));
+            content.addView(row);
+        }
+
+        menuPanel.removeAllViews();
+        menuPanel.addView(content);
+        showPanel();
     }
 
     private void showSpecialKeysMenu() {
@@ -239,7 +295,7 @@ public class GameMenu implements Game.GameMenuCallbacks {
         }
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog(getString(R.string.game_menu_send_keys), options.toArray(new MenuOption[options.size()]));
+        showMenuPanel(getString(R.string.game_menu_send_keys), options.toArray(new MenuOption[options.size()]));
     }
 
     private void showAdvancedMenu(GameInputDevice device) {
@@ -258,17 +314,17 @@ public class GameMenu implements Game.GameMenuCallbacks {
         options.add(new MenuOption(getString(R.string.game_menu_task_manager), true, () -> sendKeys(new short[]{KeyboardTranslator.VK_LCONTROL, KeyboardTranslator.VK_LSHIFT, KeyboardTranslator.VK_ESCAPE})));
 
         // **FIXED:** This is a UI navigation action, so it should not use withGameFocus.
-        options.add(new MenuOption(getString(R.string.game_menu_send_keys), () -> {
-            hideMenu();
-            showSpecialKeysMenu();
-        }));
+        // No explicit hideMenu() here: showSpecialKeysMenu() -> showMenuPanel() replaces this
+        // panel's content in place, so closing it first would just cause a needless
+        // close-then-reopen flicker.
+        options.add(new MenuOption(getString(R.string.game_menu_send_keys), this::showSpecialKeysMenu));
 
         options.add(new MenuOption(getString(R.string.game_menu_switch_touch_sensitivity_model), true, game::switchTouchSensitivity));
         if (device != null) {
             options.addAll(device.getGameMenuOptions());
         }
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
-        showMenuDialog(getString(R.string.game_menu_advanced), options.toArray(new MenuOption[options.size()]));
+        showMenuPanel(getString(R.string.game_menu_advanced), options.toArray(new MenuOption[options.size()]));
     }
 
     private void showServerCmd(ArrayList<String> serverCmds) {
@@ -282,7 +338,7 @@ public class GameMenu implements Game.GameMenuCallbacks {
 
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog(getString(R.string.game_menu_server_cmd), options.toArray(new MenuOption[options.size()]));
+        showMenuPanel(getString(R.string.game_menu_server_cmd), options.toArray(new MenuOption[options.size()]));
     }
 
     public void showMenu(GameInputDevice device) {
@@ -309,7 +365,8 @@ public class GameMenu implements Game.GameMenuCallbacks {
                                 .setMessage(R.string.game_dialog_message_server_cmd_empty)
                                 .show();
                     } else {
-                        hideMenu();
+                        // No explicit hideMenu(): showServerCmd() -> showMenuPanel() replaces
+                        // this panel's content in place.
                         this.showServerCmd(serverCmds);
                     }
                 }));
@@ -328,21 +385,30 @@ public class GameMenu implements Game.GameMenuCallbacks {
         options.add(new MenuOption(getString(R.string.game_menu_advanced), true,
                 () -> showAdvancedMenu(device)));
 
+        // Opens the virtual controller's own layout editor (a separate right-docked panel),
+        // so this one is closed first rather than left showing behind/alongside it.
+        options.add(new MenuOption(getString(R.string.game_menu_controller_layout), () -> {
+            hideMenu();
+            game.openControllerLayoutEditor();
+        }));
+
         options.add(new MenuOption(getString(R.string.game_menu_cancel), null));
 
-        showMenuDialog(getString(R.string.quick_menu_title), options.toArray(new MenuOption[options.size()]));
+        showMenuPanel(getString(R.string.quick_menu_title), options.toArray(new MenuOption[options.size()]));
     }
 
     @Override
     public void hideMenu() {
-        if (currentDialog != null && currentDialog.isShowing()) {
-            currentDialog.dismiss();
+        if (menuPanel == null || menuPanel.getVisibility() != View.VISIBLE) {
+            return;
         }
-        currentDialog = null;
+        menuPanel.animate().translationX(panelWidthPx).setDuration(150)
+                .withEndAction(() -> menuPanel.setVisibility(View.GONE))
+                .start();
     }
 
     @Override
     public boolean isMenuOpen() {
-        return currentDialog != null && currentDialog.isShowing();
+        return menuPanel != null && menuPanel.getVisibility() == View.VISIBLE;
     }
 }
