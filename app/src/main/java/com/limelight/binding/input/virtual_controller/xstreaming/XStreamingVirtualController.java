@@ -568,6 +568,11 @@ public class XStreamingVirtualController implements XSMacroPlayer.MacroTarget {
         return editMode;
     }
 
+    /** Enters layout-editing mode, e.g. from the in-game quick menu's "Controller Layout" entry. */
+    public void enterEditMode() {
+        setEditMode(true);
+    }
+
     /** @return 1 if the pad is now shown, 0 if hidden (mirrors VirtualController). */
     public int switchShowHide() {
         if (isShown()) {
