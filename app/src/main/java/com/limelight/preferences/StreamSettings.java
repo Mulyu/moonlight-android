@@ -340,6 +340,14 @@ public class StreamSettings extends AppCompatActivity {
             AppCompatActivity activity = (AppCompatActivity) requireActivity();
             PackageManager pm = activity.getPackageManager();
 
+            Preference controllerSettingsPref = findPreference("option_controller_settings");
+            if (controllerSettingsPref != null) {
+                controllerSettingsPref.setOnPreferenceClickListener(preference -> {
+                    activity.startActivity(new Intent(activity, com.limelight.ControllerSettingsActivity.class));
+                    return true;
+                });
+            }
+
             // hide on-screen controls category on non touch screen devices
             if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                 PreferenceCategory category = findPreference("category_onscreen_controls");
