@@ -248,6 +248,8 @@
         <activity android:name=".DebugInfoActivity"
             android:launchMode="singleTask"/>
 
+        <activity android:name=".ControllerSettingsActivity" />
+
         <!-- Mock preview of the XStreaming-style touch controller. Landscape
              only, since the ported layout is XStreaming's landscape pad. -->
         <activity android:name=".XStreamingGamepadMockActivity"

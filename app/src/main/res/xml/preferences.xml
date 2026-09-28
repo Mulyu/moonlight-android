@@ -663,6 +663,11 @@
         android:title="@string/category_on_screen_controls_settings"
         app:initialExpandedChildrenCount="1"
         app:iconSpaceReserved="false">
+        <Preference
+            android:key="option_controller_settings"
+            android:summary="@string/summary_controller_settings"
+            android:title="@string/title_controller_settings"
+            app:iconSpaceReserved="false" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="checkbox_show_onscreen_controls"

@@ -87,6 +87,17 @@
     <string name="title_checkbox_xb1_driver">Xbox 360/Oneコントローラ</string>
     <string name="summary_checkbox_xb1_driver">XboxゲームコントローラをサポートしないデバイスでXboxゲームコントローラ用のドライバを有効にします</string>
     <string name="category_on_screen_controls_settings">オンスクリーンコントローラ</string>
+    <string name="title_controller_settings">コントローラー設定</string>
+    <string name="summary_controller_settings">オンスクリーンコントローラーのレイアウトプロファイルと初期設定を管理します</string>
+    <string name="controller_settings_section_global">全体の初期設定</string>
+    <string name="controller_settings_joystick_mode">ジョイスティックモード</string>
+    <string name="controller_settings_joystick_mode_summary">プロファイル側で上書きしていない場合の初期値</string>
+    <string name="controller_settings_opacity">オーバーレイの不透明度</string>
+    <string name="controller_settings_haptics">触覚フィードバック</string>
+    <string name="controller_settings_haptics_summary">ボタンを押したときに軽く振動させます</string>
+    <string name="controller_settings_edit_layout">レイアウトを編集</string>
+    <string name="controller_settings_edit_layout_hint">レイアウトを編集するにはストリーミングを開始してください</string>
+    <string name="controller_settings_active_label">使用中</string>
     <string name="title_checkbox_show_onscreen_controls">オンスクリーンコントローラ</string>
     <string name="summary_checkbox_show_onscreen_controls">タッチスクリーン上にオンスクリーンコントローラを表示します</string>
     <string name="category_ui_settings">インターフェース</string>

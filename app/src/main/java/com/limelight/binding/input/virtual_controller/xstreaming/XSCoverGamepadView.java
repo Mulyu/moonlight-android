@@ -1,6 +1,7 @@
 package com.limelight.binding.input.virtual_controller.xstreaming;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -45,6 +46,12 @@ public class XSCoverGamepadView extends FrameLayout {
         super(context, attrs, defStyleAttr);
         setClickable(false);
         setFocusable(false);
+        // This is the root content view of a brand-new WindowAreaSessionPresenter session on
+        // the cover display -- there's no game video behind it like there is for the main pad
+        // overlay, so without an explicit background it falls through to the window's default
+        // (white), and these buttons' light-colored artwork (designed to sit over dark video)
+        // becomes nearly invisible.
+        setBackgroundColor(Color.BLACK);
     }
 
     public void setListener(Listener listener) {
