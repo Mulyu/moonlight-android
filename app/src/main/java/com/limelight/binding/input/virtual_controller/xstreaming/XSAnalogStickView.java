@@ -52,7 +52,8 @@ public class XSAnalogStickView extends View {
      * inside it, matching XStreaming's fixed-stick box (CustomVirtualGamepad.tsx's
      * leftJs/rightJs: 120x120, borderRadius 60, overflow "hidden", with the
      * inner AnalogStick's own style painting rgba(255,255,255,.5) beneath it).
-     * Without this, the touch-overlay circle (radius+handleRadius, ~220dp)
+     * Without this, the touch-overlay circle (radius+handleRadius, ~220 raw
+     * pixels -- see XStreamingGamepadView's FIXED_STICK_RADIUS_PX/HANDLE_PX)
      * draws far outside the small fixed box, and the box shows nothing at
      * all until it's already being touched.
      */

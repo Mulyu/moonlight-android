@@ -54,14 +54,21 @@ public class XStreamingGamepadView extends FrameLayout {
     /** Alpha applied to a hidden element while in edit mode, so it's visible but marked as off. */
     private static final float HIDDEN_EDIT_ALPHA = 0.3f;
 
-    // Stick geometry, in dp, matching XStreaming's CustomVirtualGamepad.tsx.
-    private static final float FREE_LEFT_STICK_RADIUS_DP = 140f;
-    private static final float FREE_LEFT_STICK_HANDLE_DP = 80f;
-    private static final float FREE_RIGHT_STICK_RADIUS_DP = 150f;
-    private static final float FREE_RIGHT_STICK_HANDLE_DP = 100f;
+    // Stick geometry, matching XStreaming's CustomVirtualGamepad.tsx/VirtualGamepad.tsx.
+    // These are the literal radius={..}/handleRadius={..} numbers XStreaming passes to its
+    // native AnalogStickView. There, they're custom ViewManager float props, not RN style
+    // layout props, so React Native passes them through unconverted -- they're raw device
+    // pixels, not dp, unlike FIXED_STICK_BOX_DP below (a real RN style width/height, which
+    // *is* dp-equivalent and does get density-scaled). Wrapping these in dp() -- as this port
+    // used to -- re-applies density scaling XStreaming never applied, inflating the stick
+    // 2-4x on typical (non-mdpi) phones.
+    private static final float FREE_LEFT_STICK_RADIUS_PX = 140f;
+    private static final float FREE_LEFT_STICK_HANDLE_PX = 80f;
+    private static final float FREE_RIGHT_STICK_RADIUS_PX = 150f;
+    private static final float FREE_RIGHT_STICK_HANDLE_PX = 100f;
     // Fixed mode uses the same (left) radius for both sticks -- ported as-is.
-    private static final float FIXED_STICK_RADIUS_DP = 140f;
-    private static final float FIXED_STICK_HANDLE_DP = 80f;
+    private static final float FIXED_STICK_RADIUS_PX = 140f;
+    private static final float FIXED_STICK_HANDLE_PX = 80f;
     private static final int FIXED_STICK_BOX_DP = 120;
 
     private List<XSButtonConfig> layout = new ArrayList<>();
@@ -257,14 +264,14 @@ public class XStreamingGamepadView extends FrameLayout {
 
         FrameLayout.LayoutParams params;
         if (joystickMode == 1) {
-            stick.setRadius(dp(isLeft ? FREE_LEFT_STICK_RADIUS_DP : FREE_RIGHT_STICK_RADIUS_DP));
-            stick.setHandleRadius(dp(isLeft ? FREE_LEFT_STICK_HANDLE_DP : FREE_RIGHT_STICK_HANDLE_DP));
+            stick.setRadius(isLeft ? FREE_LEFT_STICK_RADIUS_PX : FREE_RIGHT_STICK_RADIUS_PX);
+            stick.setHandleRadius(isLeft ? FREE_LEFT_STICK_HANDLE_PX : FREE_RIGHT_STICK_HANDLE_PX);
             int halfWidth = getWidth() > 0 ? getWidth() / 2 : LayoutParams.MATCH_PARENT;
             params = new FrameLayout.LayoutParams(halfWidth, LayoutParams.MATCH_PARENT,
                     (isLeft ? Gravity.START : Gravity.END) | Gravity.TOP);
         } else {
-            stick.setRadius(dp(FIXED_STICK_RADIUS_DP));
-            stick.setHandleRadius(dp(FIXED_STICK_HANDLE_DP));
+            stick.setRadius(FIXED_STICK_RADIUS_PX);
+            stick.setHandleRadius(FIXED_STICK_HANDLE_PX);
             stick.setClipToBoundsCircle(true);
             params = new FrameLayout.LayoutParams(dp(FIXED_STICK_BOX_DP), dp(FIXED_STICK_BOX_DP),
                     Gravity.TOP | Gravity.START);
